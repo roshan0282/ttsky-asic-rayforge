@@ -1,11 +1,7 @@
-// Generic testbench wrapper for VGA projects - Verilator compatible
-// This testbench can work with any module that has VGA outputs
-module tbGenericVga(
-    // Clock and reset (exposed as ports for Verilator)
+// Testbench for TinyTapeout-format VGA module
+module tbTinyTapeoutBench(
     input clock50MHz,
     input resetn,
-    
-    // VGA outputs (exposed for C++ to read)
     output hSync,
     output vSync,
     output [9:0] xOrd,
@@ -20,12 +16,12 @@ module tbGenericVga(
     wire [7:0] dut_uio_oe;
     reg [7:0] ui_in = 0;
     reg [7:0] uio_in = 0;
-    
-    // Instantiate the design under test using TOP_MODULE define
+
+    // Instantiate DUT using TOP_MODULE define
     `ifdef TOP_MODULE
         `TOP_MODULE dut (
     `else
-        tt_um_minimal_vga dut (
+        tt_um_tinytapeout_vga dut (
     `endif
         .clk(clock50MHz),
         .rst_n(resetn),
@@ -36,40 +32,36 @@ module tbGenericVga(
         .uio_out(dut_uio_out),
         .uio_oe(dut_uio_oe)
     );
-    
+
     // internal counters to track pixel coordinates
     reg [9:0] xReg, yReg;
-    reg visibleReg;
+    reg v_visibleReg;
     always @(posedge clock50MHz) begin
         if (!resetn) begin
             xReg <= 10'd0;
             yReg <= 10'd0;
-            visibleReg <= 1'b0;
+            v_visibleReg <= 1'b0;
         end else begin
-            // increment x counter, wrap at 799 (full vga horizontal including blanking)
-            if (xReg == 10'd799)
-                xReg <= 10'd0;
-            else
-                xReg <= xReg + 10'd1;
-            
-            // increment y counter when x wraps, wrap at 524 (full vga vertical)
+            // horizontal counter: 0-799
             if (xReg == 10'd799) begin
+                xReg <= 10'd0;
+                // vertical counter: 0-524
                 if (yReg == 10'd524)
                     yReg <= 10'd0;
                 else
                     yReg <= yReg + 10'd1;
+            end else begin
+                xReg <= xReg + 10'd1;
             end
             
             // visible region is first 640x480 pixels
-            visibleReg <= (xReg < 10'd640 && yReg < 10'd480);
+            v_visibleReg <= (xReg < 10'd640 && yReg < 10'd480);
         end
     end
-    
-    // extract vga signals from tinytapeout format
-    // uo_out format: {hSync, b[0], g[0], r[0], vSync, b[1], g[1], r[1]}
+
     assign hSync = dut_uo_out[7];
     assign vSync = dut_uo_out[3];
-    assign visible = visibleReg;
+    assign visible = v_visibleReg;
     assign xOrd = xReg;
     assign yOrd = yReg;
     // expand 2-bit color to 8-bit (replicate 4 times for brightness)

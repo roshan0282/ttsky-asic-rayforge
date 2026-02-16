@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
     
     // Create SDL window
     SDL_Window* window = SDL_CreateWindow(
-        "Verilator-Bench Viewer",
+        "Generic VGA Viewer - Verilator",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         VGA_WIDTH * SCALE,

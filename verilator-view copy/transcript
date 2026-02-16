@@ -1,0 +1,82 @@
+# sim_scaling_fast.t
+# invalid command name "sim_scaling_fast.t"
+# Break key hit
+# sim_scaling_fast.t
+# invalid command name "sim_scaling_fast.v
+vsim -do sim_scaling_fast.v
+# No design specified
+vsim -do sim_scaling_fast.tcl
+# No design specified
+-do sim_scaling_fast.tcl
+# invalid command name "-do"
+do sim_scaling_fast.tcl
+# Cannot open macro file: sim_scaling_fast.tcl
+cd C:/2f/scope/deploy
+# reading modelsim.ini
+do sim_scaling_fast.tcl
+# Model Technology ModelSim - Intel FPGA Edition vmap 10.5b Lib Mapping Utility 2016.10 Oct  5 2016
+# vmap work work 
+# Modifying modelsim.ini
+# Compiling timeVoltageCorrection and tb_scaling_fast...
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 12:26:47 on Nov 20,2025
+# vlog -reportprogress 300 -work work timeVoltageCorrection.v 
+# -- Compiling module timeVoltageCorrection
+# 
+# Top level modules:
+# 	timeVoltageCorrection
+# End time: 12:26:47 on Nov 20,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 12:26:48 on Nov 20,2025
+# vlog -reportprogress 300 -work work tb_scaling_fast.v 
+# -- Compiling module tb_scaling_fast
+# ** Error: tb_scaling_fast.v(75): Declarations not allowed in unnamed block.
+# ** Error: tb_scaling_fast.v(76): Illegal declaration after the statement near line '70'.  Declarations must precede statements.  Look for stray semicolons.
+# End time: 12:26:48 on Nov 20,2025, Elapsed time: 0:00:00
+# Errors: 2, Warnings: 0
+# ** Error: C:/intelFPGA_lite/18.1/modelsim_ase/win32aloem/vlog failed.
+# Error in macro ./sim_scaling_fast.tcl line 12
+# C:/intelFPGA_lite/18.1/modelsim_ase/win32aloem/vlog failed.
+#     while executing
+# "vlog -work work tb_scaling_fast.v"
+do sim_scaling_fast.tcl
+# Model Technology ModelSim - Intel FPGA Edition vmap 10.5b Lib Mapping Utility 2016.10 Oct  5 2016
+# vmap work work 
+# Modifying modelsim.ini
+# Compiling timeVoltageCorrection and tb_scaling_fast...
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 12:28:48 on Nov 20,2025
+# vlog -reportprogress 300 -sv -work work timeVoltageCorrection.v 
+# -- Compiling module timeVoltageCorrection
+# 
+# Top level modules:
+# 	timeVoltageCorrection
+# End time: 12:28:48 on Nov 20,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 12:28:48 on Nov 20,2025
+# vlog -reportprogress 300 -sv -work work tb_scaling_fast.v 
+# -- Compiling module tb_scaling_fast
+# 
+# Top level modules:
+# 	tb_scaling_fast
+# End time: 12:28:48 on Nov 20,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# Starting simulation...
+# vsim -novopt -t ns work.tb_scaling_fast 
+# Start time: 12:28:48 on Nov 20,2025
+# Loading sv_std.std
+# Loading work.tb_scaling_fast
+# Loading work.timeVoltageCorrection
+# Running short simulation...
+# ** Note: $finish    : tb_scaling_fast.v(94)
+#    Time: 1250090 ns  Iteration: 1  Instance: /tb_scaling_fast
+# 1
+# Break in Module tb_scaling_fast at tb_scaling_fast.v line 94
+# 
+# ==============================================
+# Fast scaling demo complete.
+# ==============================================
+# End time: 18:22:36 on Nov 21,2025, Elapsed time: 29:53:48
+# Errors: 0, Warnings: 0

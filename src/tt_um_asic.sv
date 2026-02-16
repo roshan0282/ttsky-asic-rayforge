@@ -21,14 +21,11 @@ module tt_um_asic (
   wire [9:0] clk_per_bit;
 
   assign clk_per_bit = {uio_in[7:0], 2'b00}; // set upper 8 bits
-  
-  
   assign rst = ~rst_n;
   assign uio_oe = 8'b0000_0000; // set bidirectional as inputs
   assign uio_out = 8'b0000_0000; // set unused bidirectional outputs to LOW
-  assign uo_out[7:3] = 5'b0_0000; // set unused outputs to LOW
 
-
+  asic asic0(.in(ui_in),.out(uo_out));
   // List all unused inputs to prevent warnings
   wire _unused = &{ui_in[7:1], ena, 1'b0};
 

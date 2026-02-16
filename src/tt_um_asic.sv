@@ -28,20 +28,6 @@ module tt_um_asic (
   assign uio_out = 8'b0000_0000; // set unused bidirectional outputs to LOW
   assign uo_out[7:3] = 5'b0_0000; // set unused outputs to LOW
 
-  simproc_system #(
-     .CLK_BITS(10)
-  ) U1 (
-      .clk(clk),
-      .rst(rst),
-
-      .clk_per_bit(clk_per_bit),
-      .uart_rx(ui_in[0]),
-
-      .uart_tx(uo_out[0]),
-
-      .halt(uo_out[1]),
-      .done(uo_out[2])
-  );
 
   // List all unused inputs to prevent warnings
   wire _unused = &{ui_in[7:1], ena, 1'b0};

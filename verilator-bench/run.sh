@@ -13,7 +13,7 @@ else
 fi
 
 echo "==========================================="
-echo "verilator vga viewer"
+echo "Verilator-Bench"
 echo "==========================================="
 echo "source folder: $VERILATOR_SOURCE_FOLDER"
 echo "top module: $VERILATOR_TOP_MODULE"
@@ -40,7 +40,7 @@ make generic
 if [ $? -eq 0 ]; then
     echo ""
     echo "==========================================="
-    echo "build successful!"
+    echo "Build Successful!"
     echo "==========================================="
     echo ""
     echo "running vga viewer..."
@@ -50,7 +50,7 @@ if [ $? -eq 0 ]; then
 else
     echo ""
     echo "==========================================="
-    echo "build failed! check errors above"
+    echo "Build Failed! Check errors above"
     echo "==========================================="
     exit 1
 fi

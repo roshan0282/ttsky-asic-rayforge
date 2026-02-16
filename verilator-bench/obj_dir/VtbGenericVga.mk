@@ -69,3 +69,5 @@ generic_vga_viewer: $(VK_USER_OBJS) $(VK_GLOBAL_OBJS) $(VM_PREFIX)__ALL.a $(VM_H
 # Verilated -*- Makefile -*-
 LIBS += -lmingw32 -lSDL2main -lSDL2
 LDFLAGS += -Wl,-subsystem,console -Wl,-Bstatic -Wl,-Bdynamic
+LIBS += -lmingw32 -lSDL2main -lSDL2
+LDFLAGS += -Wl,-subsystem,console -Wl,-Bstatic -Wl,-Bdynamic

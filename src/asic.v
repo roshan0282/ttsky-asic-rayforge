@@ -7,7 +7,7 @@ wire [9:0] yOrd;
 
 vgaDriver driver0(
     .clock50MHz(in[0]),
-    .resetn(1'b0),
+    .resetn(1'b1),
     .resolutionX(10'd500),
     .resolutionY(10'd500),
     .hSync(out[0]),

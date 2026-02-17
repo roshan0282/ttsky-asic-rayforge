@@ -8,9 +8,9 @@ module fontROM(
     reg [7:0] fontMemory [0:1023];
 
     // initialize from .mem file
-    initial begin
-        $readmemb("font8x8.mem", fontMemory);
-    end
+    // initial begin
+    //     $readmemb("font8x8.mem", fontMemory);
+    // end
 
     // combinational read
     always @(*) begin

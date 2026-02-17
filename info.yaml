@@ -25,7 +25,6 @@ project:
     - "textGenerator.v"
     - "pixelArbiter.v"
     - "fontROM.v"
-    - "font8x8.mem"
     - "clockCounter.v"
     - "characterRAM.v"
     - "backgroundGenerator.v"

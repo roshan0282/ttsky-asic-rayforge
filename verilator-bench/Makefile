@@ -104,7 +104,8 @@ generic:
 	$(VERILATOR) $(VERILATOR_FLAGS) \
 		-DTOP_MODULE=$(VERILATOR_TOP_MODULE) \
 		-I$(VERILATOR_SOURCE_FOLDER) \
-		$(VERILATOR_SOURCE_FOLDER)/*.v \
+		$(wildcard $(VERILATOR_SOURCE_FOLDER)/*.v) \
+		$(wildcard $(VERILATOR_SOURCE_FOLDER)/*.sv) \
 		tb/tbGenericVga.v \
 		genericVgaViewer.cpp \
 		--top-module tbGenericVga \

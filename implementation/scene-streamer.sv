@@ -18,6 +18,11 @@ module scene_streamer (
 
 `include "scene-lut.svh"
 
+// TODO(sceneStreamer): add ready/valid handshake (backpressure support).
+// TODO(sceneStreamer): latch per-pixel context so object scan is decoupled from input timing.
+// TODO(sceneStreamer): guard SCENE_SPHERE_COUNT==0 and assert done safely.
+// TODO(sceneStreamer): optionally emit last flag per object for hitReducer integration.
+
 logic running;
 logic [7:0] cur_idx;
 

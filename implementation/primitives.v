@@ -33,6 +33,7 @@ module fixed_point_mul #(parameter WIDTH = 12) (
     input  signed [WIDTH-1:0] b,
     output signed [WIDTH-1:0] prod
 );
+    // TODO(primitives): add rounding and saturation options (currently truncates and may overflow).
     assign prod = (a * b) >>> 4; // Q8.4: shift by 4 to keep Q8.4
 endmodule
 
@@ -42,6 +43,7 @@ module fixed_point_div #(parameter WIDTH = 12) (
     input  signed [WIDTH-1:0] b,
     output signed [WIDTH-1:0] quot
 );
+    // TODO(primitives): define divide-by-zero policy (saturate/zero/error flag).
     assign quot = (b != 0) ? ((a <<< 4) / b) : 0; // Q8.4: shift numerator by 4
 endmodule
 
@@ -59,7 +61,8 @@ module fixed_point_sqrt #(parameter WIDTH = 12) (
     input  signed [WIDTH-1:0] a,
     output signed [WIDTH-1:0] root
 );
-    // Implementation required
+    // TODO(primitives): implement Q8.4 sqrt with non-negative input handling.
+    // TODO(primitives): add optional pipelined iterative version for timing closure.
     assign root = 0;
 endmodule
 
@@ -76,7 +79,7 @@ module fixed_point_recip #(parameter WIDTH = 12) (
     input  signed [WIDTH-1:0] a,
     output signed [WIDTH-1:0] recip
 );
-    // Implementation required
+    // TODO(primitives): implement reciprocal approximation + refinement in Q8.4.
     assign recip = 0;
 endmodule
 
@@ -129,7 +132,8 @@ module fixed_vec3_normalize #(parameter WIDTH = 12) (
     input  signed [WIDTH-1:0] x, y, z,
     output signed [WIDTH-1:0] nx, ny, nz
 );
-    // Implementation required
+    // TODO(primitives): implement normalize(v)=v/|v| using fixed_point_sqrt + fixed_point_div.
+    // TODO(primitives): handle zero-length vector safely.
     assign nx = 0;
     assign ny = 0;
     assign nz = 0;

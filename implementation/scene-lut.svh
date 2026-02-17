@@ -1,5 +1,5 @@
-// Auto-generated scene LUT
-// Regenerate with: python tools/scene-compiler.py --in tools/scene-sample.json --out implementation/scene-lut.svh
+// auto-generated scene LUT
+// regenerate with: python tools/scene-compiler.py --in tools/scene-sample.json --out implementation/scene-lut.svh
 
 localparam int SCENE_SPHERE_COUNT = 2;
 localparam int SCENE_LIGHT_COUNT = 2;

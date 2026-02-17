@@ -12,6 +12,11 @@ qScale = 1 << qFrac
 qMin = -(1 << 11)
 qMax = (1 << 11) - 1
 
+# TODO(sceneCompiler): validate JSON schema and emit clear errors for missing keys/types.
+# TODO(sceneCompiler): support material parameters (roughness/metalness/specular).
+# TODO(sceneCompiler): add optional triangle/plane emitters once geometry stages exist.
+# TODO(sceneCompiler): add deterministic formatting mode for stable diff-friendly output.
+
 
 def toQ84(value: float) -> int:
     qValue = int(round(value * qScale))

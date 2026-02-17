@@ -9,10 +9,19 @@ module raytracer_top (
     output logic [7:0]  rgb_b
 );
 
-// Minimal integration scaffold:
+// this will contain the following
 // - one fixed camera ray
 // - iterate LUT spheres
 // - evaluate intersection and apply LUT lights
+//
+// NOTE: this file intentionally stays placeholder-level.
+// arithmetic is routed through primitives.v modules to lock datapath style.
+// TODO(raytracerTop): replace fixed forward ray with cameraRayGen from pixel_x/pixel_y.
+// TODO(raytracerTop): add hitReducer so nearest sphere hit is selected across SCENE_SPHERE_COUNT.
+// TODO(raytracerTop): convert single-light path to streamed loop over SCENE_LIGHT_COUNT.
+// TODO(raytracerTop): add proper normal normalization via fixed_vec3_normalize.
+// TODO(raytracerTop): add clamp/saturation path with deterministic fixed-point behavior.
+// TODO(raytracerTop): add valid/stall handshake between stages.
 
 `include "scene-lut.svh"
 
@@ -29,16 +38,15 @@ logic signed [11:0] t;
 logic signed [11:0] ox, oy, oz, dx, dy, dz;
 logic signed [11:0] hitX, hitY, hitZ;
 logic signed [11:0] normalX, normalY, normalZ;
+logic signed [11:0] mulDxT, mulDyT, mulDzT;
 
-integer lightIndex;
 logic signed [11:0] lightX, lightY, lightZ;
 logic [7:0] lightColorR, lightColorG, lightColorB;
 logic signed [11:0] lightIntensity;
-logic signed [12:0] lightVecX, lightVecY, lightVecZ;
-logic signed [15:0] nDotL;
-logic signed [15:0] diffuseQ;
-logic [17:0] shadeR, shadeG, shadeB;
-logic [17:0] accumR, accumG, accumB;
+logic signed [11:0] lightVecX, lightVecY, lightVecZ;
+logic signed [11:0] nDotL;
+logic signed [11:0] diffuseQ;
+logic [7:0] accumR, accumG, accumB;
 
 assign ox = 12'sd0;
 assign oy = 12'sd0;
@@ -75,42 +83,55 @@ ray_sphere_intersect u_ray_sphere_intersect (
     .t(t)
 );
 
+// Placeholder single-light fetch (index 0).
+// TODO: replace with full light streaming + accumulation.
 always_comb begin
-    hitX = ox + ((dx * t) >>> 4);
-    hitY = oy + ((dy * t) >>> 4);
-    hitZ = oz + ((dz * t) >>> 4);
+    sceneLightGet(8'd0, lightX, lightY, lightZ, lightColorR, lightColorG, lightColorB, lightIntensity);
+end
 
-    normalX = hitX - cx;
-    normalY = hitY - cy;
-    normalZ = hitZ - cz;
+// hitPoint = O + t*D
+fixed_point_mul u_mulDxT (.a(dx), .b(t), .prod(mulDxT));
+fixed_point_mul u_mulDyT (.a(dy), .b(t), .prod(mulDyT));
+fixed_point_mul u_mulDzT (.a(dz), .b(t), .prod(mulDzT));
 
-    // Ambient base term (0.125 in Q8.4 -> 2)
-    accumR = (colorR * 8'd2) >>> 4;
-    accumG = (colorG * 8'd2) >>> 4;
-    accumB = (colorB * 8'd2) >>> 4;
+fixed_point_add u_addHitX (.a(ox), .b(mulDxT), .sum(hitX));
+fixed_point_add u_addHitY (.a(oy), .b(mulDyT), .sum(hitY));
+fixed_point_add u_addHitZ (.a(oz), .b(mulDzT), .sum(hitZ));
 
-    for (lightIndex = 0; lightIndex < SCENE_LIGHT_COUNT; lightIndex = lightIndex + 1) begin
-        sceneLightGet(lightIndex[7:0], lightX, lightY, lightZ, lightColorR, lightColorG, lightColorB, lightIntensity);
+// normal = hitPoint - center (unnormalized placeholder)
+fixed_point_sub u_subNormalX (.a(hitX), .b(cx), .diff(normalX));
+fixed_point_sub u_subNormalY (.a(hitY), .b(cy), .diff(normalY));
+fixed_point_sub u_subNormalZ (.a(hitZ), .b(cz), .diff(normalZ));
 
-        lightVecX = lightX - hitX;
-        lightVecY = lightY - hitY;
-        lightVecZ = lightZ - hitZ;
+// lightVec = lightPos - hitPoint
+fixed_point_sub u_subLightVecX (.a(lightX), .b(hitX), .diff(lightVecX));
+fixed_point_sub u_subLightVecY (.a(lightY), .b(hitY), .diff(lightVecY));
+fixed_point_sub u_subLightVecZ (.a(lightZ), .b(hitZ), .diff(lightVecZ));
 
-        nDotL = ((normalX * lightVecX) >>> 4) + ((normalY * lightVecY) >>> 4) + ((normalZ * lightVecZ) >>> 4);
-        if (nDotL > 0) begin
-            diffuseQ = (nDotL * lightIntensity) >>> 4;
-            if (diffuseQ > 16) begin
-                diffuseQ = 16;
-            end
+// nDotL and diffuse factor (placeholder, no normalization/clamp pipeline yet)
+fixed_point_dot u_dotNdotL (
+    .ax(normalX), .ay(normalY), .az(normalZ),
+    .bx(lightVecX), .by(lightVecY), .bz(lightVecZ),
+    .dot(nDotL)
+);
 
-            shadeR = ((((colorR * lightColorR) >> 8) * diffuseQ) >>> 4);
-            shadeG = ((((colorG * lightColorG) >> 8) * diffuseQ) >>> 4);
-            shadeB = ((((colorB * lightColorB) >> 8) * diffuseQ) >>> 4);
+fixed_point_mul u_mulDiffuseQ (
+    .a(nDotL),
+    .b(lightIntensity),
+    .prod(diffuseQ)
+);
 
-            accumR = accumR + shadeR;
-            accumG = accumG + shadeG;
-            accumB = accumB + shadeB;
-        end
+always_comb begin
+    // Placeholder shading output while math chain is in primitive form.
+    // TODO(shading): use lightColorR/G/B and reflectivity in physically meaningful blend.
+    if (diffuseQ > 0) begin
+        accumR = colorR;
+        accumG = colorG;
+        accumB = colorB;
+    end else begin
+        accumR = colorR >> 3;
+        accumG = colorG >> 3;
+        accumB = colorB >> 3;
     end
 end
 

@@ -57,16 +57,43 @@ module vgaTextTimerCore(
     );
     
     // text generator - renders text
+    wire [7:0] textRed, textGreen, textBlue;
     textGenerator textGen (
         .clock25MHz(clk),
         .xOrd(xOrd),
         .yOrd(yOrd),
         .visible(visible),
         .charRamData(charRamDataRdB),
-        .pixelR(red),
-        .pixelG(green),
-        .pixelB(blue),
+        .pixelR(textRed),
+        .pixelG(textGreen),
+        .pixelB(textBlue),
         .charRamAddrB(charRamAddrB)
+    );
+    
+    // background generator - 4 rotating color quadrants
+    wire [7:0] bgRed, bgGreen, bgBlue;
+    backgroundGenerator bgGen (
+        .clock(clk),
+        .reset(rst_n),
+        .xOrd(xOrd),
+        .yOrd(yOrd),
+        .visible(visible),
+        .red(bgRed),
+        .green(bgGreen),
+        .blue(bgBlue)
+    );
+    
+    // pixel arbiter - text over background
+    pixelArbiter arbiter (
+        .textRed(textRed),
+        .textGreen(textGreen),
+        .textBlue(textBlue),
+        .bgRed(bgRed),
+        .bgGreen(bgGreen),
+        .bgBlue(bgBlue),
+        .outRed(red),
+        .outGreen(green),
+        .outBlue(blue)
     );
 endmodule
 

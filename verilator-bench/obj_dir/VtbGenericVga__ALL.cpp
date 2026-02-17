@@ -3,6 +3,7 @@
 #include "VtbGenericVga.cpp"
 #include "VtbGenericVga___024root__DepSet_ha4ba80f1__0.cpp"
 #include "VtbGenericVga___024root__DepSet_hb949ed96__0.cpp"
+#include "VtbGenericVga__ConstPool_0.cpp"
 #include "VtbGenericVga___024root__Slow.cpp"
 #include "VtbGenericVga___024root__DepSet_ha4ba80f1__0__Slow.cpp"
 #include "VtbGenericVga___024root__DepSet_hb949ed96__0__Slow.cpp"

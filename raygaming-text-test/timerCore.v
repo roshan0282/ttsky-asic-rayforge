@@ -57,16 +57,43 @@ module timerCore(
     );
     
     // text generator - renders text
+    wire [7:0] textR, textG, textB;
     textGenerator textGen (
         .clock25MHz(clk),
         .xOrd(xOrd),
         .yOrd(yOrd),
         .visible(visible),
         .charRamData(charRamDataRdB),
-        .pixelR(red),
-        .pixelG(green),
-        .pixelB(blue),
+        .pixelR(textR),
+        .pixelG(textG),
+        .pixelB(textB),
         .charRamAddrB(charRamAddrB)
+    );
+    
+    // background generator - rotating quadrant colors
+    wire [7:0] bgR, bgG, bgB;
+    backgroundGenerator bgGen (
+        .clock(clk),
+        .reset(rst_n),
+        .xOrd(xOrd),
+        .yOrd(yOrd),
+        .visible(visible),
+        .red(bgR),
+        .green(bgG),
+        .blue(bgB)
+    );
+    
+    // pixel arbiter - composite text over background
+    pixelArbiter arbiter (
+        .textRed(textR),
+        .textGreen(textG),
+        .textBlue(textB),
+        .bgRed(bgR),
+        .bgGreen(bgG),
+        .bgBlue(bgB),
+        .outRed(red),
+        .outGreen(green),
+        .outBlue(blue)
     );
 endmodule
 

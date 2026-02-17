@@ -8,7 +8,7 @@ VtbGenericVga__ALL.o: VtbGenericVga__ALL.cpp VtbGenericVga.cpp \
  VtbGenericVga__Syms.h VtbGenericVga.h VtbGenericVga___024root.h \
  VtbGenericVga___024root__DepSet_ha4ba80f1__0.cpp \
  VtbGenericVga___024root__DepSet_hb949ed96__0.cpp \
- VtbGenericVga___024root__Slow.cpp \
+ VtbGenericVga__ConstPool_0.cpp VtbGenericVga___024root__Slow.cpp \
  VtbGenericVga___024root__DepSet_ha4ba80f1__0__Slow.cpp \
  VtbGenericVga___024root__DepSet_hb949ed96__0__Slow.cpp \
  VtbGenericVga__Syms.cpp

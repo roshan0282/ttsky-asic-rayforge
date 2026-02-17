@@ -17,8 +17,11 @@ void VtbGenericVga___024root___eval_triggers__act(VtbGenericVga___024root* vlSel
     // Body
     vlSelfRef.__VactTriggered.setBit(0U, ((IData)(vlSelfRef.clock50MHz) 
                                           & (~ (IData)(vlSelfRef.__Vtrigprevexpr___TOP__clock50MHz__0))));
+    vlSelfRef.__VactTriggered.setBit(1U, ((~ (IData)(vlSelfRef.resetn)) 
+                                          & (IData)(vlSelfRef.__Vtrigprevexpr___TOP__resetn__0)));
     vlSelfRef.__Vtrigprevexpr___TOP__clock50MHz__0 
         = vlSelfRef.clock50MHz;
+    vlSelfRef.__Vtrigprevexpr___TOP__resetn__0 = vlSelfRef.resetn;
 #ifdef VL_DEBUG
     if (VL_UNLIKELY(vlSymsp->_vm_contextp__->debug())) {
         VtbGenericVga___024root___dump_triggers__act(vlSelf);

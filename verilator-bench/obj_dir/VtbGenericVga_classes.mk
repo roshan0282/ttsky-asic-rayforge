@@ -31,6 +31,7 @@ VM_CLASSES_FAST += \
 
 # Generated module classes, non-fast-path, compile with low/medium optimization
 VM_CLASSES_SLOW += \
+  VtbGenericVga__ConstPool_0 \
   VtbGenericVga___024root__Slow \
   VtbGenericVga___024root__DepSet_ha4ba80f1__0__Slow \
   VtbGenericVga___024root__DepSet_hb949ed96__0__Slow \

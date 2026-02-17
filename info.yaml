@@ -19,6 +19,16 @@ project:
   source_files:
     - "asic.v"
     - "tt_um_asic.v"
+    - "vgaCore.v"
+    - "timerDisplay.v"
+    - "timerCore.v"
+    - "textGenerator.v"
+    - "pixelArbiter.v"
+    - "fontROM.v"
+    - "font8x8.mem"
+    - "clockCounter.v"
+    - "characterRAM.v"
+    - "backgroundGenerator.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).

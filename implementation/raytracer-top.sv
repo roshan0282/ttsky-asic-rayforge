@@ -9,60 +9,90 @@ module raytracer_top (
     output logic [7:0]  rgb_b
 );
 
-// this will contain the following
-// - one fixed camera ray
-// - iterate LUT spheres
-// - evaluate intersection and apply LUT lights
-//
-// NOTE: this file intentionally stays placeholder-level.
-// arithmetic is routed through primitives.v modules to lock datapath style.
-// TODO(raytracerTop): replace fixed forward ray with cameraRayGen from pixel_x/pixel_y.
-// TODO(raytracerTop): add hitReducer so nearest sphere hit is selected across SCENE_SPHERE_COUNT.
-// TODO(raytracerTop): convert single-light path to streamed loop over SCENE_LIGHT_COUNT.
-// TODO(raytracerTop): add proper normal normalization via fixed_vec3_normalize.
-// TODO(raytracerTop): add clamp/saturation path with deterministic fixed-point behavior.
-// TODO(raytracerTop): add valid/stall handshake between stages.
-
 `include "scene-lut.svh"
 
 logic start_scene;
 logic scene_valid;
+logic scene_ready;
+logic scene_last;
 logic scene_done;
 logic [7:0] scene_idx;
 logic signed [11:0] cx, cy, cz, radius, refl;
 logic [7:0] colorR, colorG, colorB;
 
-logic hit;
-logic signed [11:0] t;
+logic scanActive;
+logic shadeValid;
 
-logic signed [11:0] ox, oy, oz, dx, dy, dz;
+logic signed [11:0] rayOx, rayOy, rayOz;
+logic signed [11:0] rayDx, rayDy, rayDz;
+
+logic signed [11:0] rawDx;
+logic signed [11:0] rawDy;
+logic signed [11:0] rawDz;
+logic signed [11:0] normDx;
+logic signed [11:0] normDy;
+logic signed [11:0] normDz;
+
+logic candidateValid;
+logic candidateHit;
+logic signed [11:0] candidateT;
+
+logic bestHit;
+logic signed [11:0] bestT;
+logic signed [11:0] bestCx, bestCy, bestCz, bestRefl;
+logic [7:0] bestColorR, bestColorG, bestColorB;
+
 logic signed [11:0] hitX, hitY, hitZ;
+logic signed [11:0] hitDxT, hitDyT, hitDzT;
+logic signed [11:0] normalRawX, normalRawY, normalRawZ;
 logic signed [11:0] normalX, normalY, normalZ;
-logic signed [11:0] mulDxT, mulDyT, mulDzT;
 
 logic signed [11:0] lightX, lightY, lightZ;
 logic [7:0] lightColorR, lightColorG, lightColorB;
 logic signed [11:0] lightIntensity;
-logic signed [11:0] lightVecX, lightVecY, lightVecZ;
-logic signed [11:0] nDotL;
-logic signed [11:0] diffuseQ;
-logic [7:0] accumR, accumG, accumB;
 
-assign ox = 12'sd0;
-assign oy = 12'sd0;
-assign oz = 12'sd0;
-assign dx = 12'sd0;
-assign dy = 12'sd0;
-assign dz = 12'sd16; // +1.0 in Q8.4
+integer lightIndex;
+integer accumRInt, accumGInt, accumBInt;
+integer ndotlInt;
+integer diffuseQInt;
+integer contribR, contribG, contribB;
+integer reflMix;
+integer finalR, finalG, finalB;
 
-assign start_scene = pixel_valid;
+function automatic [7:0] clamp8(input integer value);
+begin
+    if (value < 0) begin
+        clamp8 = 8'd0;
+    end else if (value > 255) begin
+        clamp8 = 8'd255;
+    end else begin
+        clamp8 = value[7:0];
+    end
+end
+endfunction
+
+assign scene_ready = 1'b1;
+assign start_scene = pixel_valid && !scanActive;
+
+always_comb begin
+    rawDx = $signed({1'b0, pixel_x}) - 12'sd160;
+    rawDy = 12'sd120 - $signed({1'b0, pixel_y});
+    rawDz = 12'sd16;
+end
+
+fixed_vec3_normalize u_camNormalize (
+    .x(rawDx), .y(rawDy), .z(rawDz),
+    .nx(normDx), .ny(normDy), .nz(normDz)
+);
 
 scene_streamer u_scene_streamer (
     .clk(clk),
     .rst_n(rst_n),
     .start(start_scene),
+    .ready(scene_ready),
     .valid(scene_valid),
     .idx(scene_idx),
+    .last(scene_last),
     .done(scene_done),
     .cx(cx),
     .cy(cy),
@@ -75,71 +105,134 @@ scene_streamer u_scene_streamer (
 );
 
 ray_sphere_intersect u_ray_sphere_intersect (
-    .ox(ox), .oy(oy), .oz(oz),
-    .dx(dx), .dy(dy), .dz(dz),
+    .validIn(scene_valid),
+    .ox(rayOx), .oy(rayOy), .oz(rayOz),
+    .dx(rayDx), .dy(rayDy), .dz(rayDz),
     .cx(cx), .cy(cy), .cz(cz),
     .radius(radius),
-    .hit(hit),
-    .t(t)
+    .validOut(candidateValid),
+    .hit(candidateHit),
+    .t(candidateT)
 );
 
-// Placeholder single-light fetch (index 0).
-// TODO: replace with full light streaming + accumulation.
-always_comb begin
-    sceneLightGet(8'd0, lightX, lightY, lightZ, lightColorR, lightColorG, lightColorB, lightIntensity);
-end
-
-// hitPoint = O + t*D
-fixed_point_mul u_mulDxT (.a(dx), .b(t), .prod(mulDxT));
-fixed_point_mul u_mulDyT (.a(dy), .b(t), .prod(mulDyT));
-fixed_point_mul u_mulDzT (.a(dz), .b(t), .prod(mulDzT));
-
-fixed_point_add u_addHitX (.a(ox), .b(mulDxT), .sum(hitX));
-fixed_point_add u_addHitY (.a(oy), .b(mulDyT), .sum(hitY));
-fixed_point_add u_addHitZ (.a(oz), .b(mulDzT), .sum(hitZ));
-
-// normal = hitPoint - center (unnormalized placeholder)
-fixed_point_sub u_subNormalX (.a(hitX), .b(cx), .diff(normalX));
-fixed_point_sub u_subNormalY (.a(hitY), .b(cy), .diff(normalY));
-fixed_point_sub u_subNormalZ (.a(hitZ), .b(cz), .diff(normalZ));
-
-// lightVec = lightPos - hitPoint
-fixed_point_sub u_subLightVecX (.a(lightX), .b(hitX), .diff(lightVecX));
-fixed_point_sub u_subLightVecY (.a(lightY), .b(hitY), .diff(lightVecY));
-fixed_point_sub u_subLightVecZ (.a(lightZ), .b(hitZ), .diff(lightVecZ));
-
-// nDotL and diffuse factor (placeholder, no normalization/clamp pipeline yet)
-fixed_point_dot u_dotNdotL (
-    .ax(normalX), .ay(normalY), .az(normalZ),
-    .bx(lightVecX), .by(lightVecY), .bz(lightVecZ),
-    .dot(nDotL)
-);
-
-fixed_point_mul u_mulDiffuseQ (
-    .a(nDotL),
-    .b(lightIntensity),
-    .prod(diffuseQ)
-);
-
-always_comb begin
-    // Placeholder shading output while math chain is in primitive form.
-    // TODO(shading): use lightColorR/G/B and reflectivity in physically meaningful blend.
-    if (diffuseQ > 0) begin
-        accumR = colorR;
-        accumG = colorG;
-        accumB = colorB;
+always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        scanActive <= 1'b0;
+        shadeValid <= 1'b0;
+        rayOx <= 12'sd0;
+        rayOy <= 12'sd0;
+        rayOz <= 12'sd0;
+        rayDx <= 12'sd0;
+        rayDy <= 12'sd0;
+        rayDz <= 12'sd16;
+        bestHit <= 1'b0;
+        bestT <= 12'sd2047;
+        bestCx <= 12'sd0;
+        bestCy <= 12'sd0;
+        bestCz <= 12'sd0;
+        bestRefl <= 12'sd0;
+        bestColorR <= 8'd0;
+        bestColorG <= 8'd0;
+        bestColorB <= 8'd0;
     end else begin
-        accumR = colorR >> 3;
-        accumG = colorG >> 3;
-        accumB = colorB >> 3;
+        shadeValid <= 1'b0;
+
+        if (start_scene) begin
+            scanActive <= 1'b1;
+            rayOx <= 12'sd0;
+            rayOy <= 12'sd0;
+            rayOz <= 12'sd0;
+            rayDx <= normDx;
+            rayDy <= normDy;
+            rayDz <= normDz;
+
+            bestHit <= 1'b0;
+            bestT <= 12'sd2047;
+            bestCx <= 12'sd0;
+            bestCy <= 12'sd0;
+            bestCz <= 12'sd0;
+            bestRefl <= 12'sd0;
+            bestColorR <= 8'd0;
+            bestColorG <= 8'd0;
+            bestColorB <= 8'd0;
+        end
+
+        if (candidateValid && candidateHit) begin
+            if (!bestHit || (candidateT < bestT)) begin
+                bestHit <= 1'b1;
+                bestT <= candidateT;
+                bestCx <= cx;
+                bestCy <= cy;
+                bestCz <= cz;
+                bestRefl <= refl;
+                bestColorR <= colorR;
+                bestColorG <= colorG;
+                bestColorB <= colorB;
+            end
+        end
+
+        if (scene_done) begin
+            scanActive <= 1'b0;
+            shadeValid <= 1'b1;
+        end
     end
 end
 
+fixed_point_mul u_mulDxT (.a(rayDx), .b(bestT), .prod(hitDxT));
+fixed_point_mul u_mulDyT (.a(rayDy), .b(bestT), .prod(hitDyT));
+fixed_point_mul u_mulDzT (.a(rayDz), .b(bestT), .prod(hitDzT));
+
+fixed_point_add u_addHitX (.a(rayOx), .b(hitDxT), .sum(hitX));
+fixed_point_add u_addHitY (.a(rayOy), .b(hitDyT), .sum(hitY));
+fixed_point_add u_addHitZ (.a(rayOz), .b(hitDzT), .sum(hitZ));
+
+fixed_point_sub u_subNormalX (.a(hitX), .b(bestCx), .diff(normalRawX));
+fixed_point_sub u_subNormalY (.a(hitY), .b(bestCy), .diff(normalRawY));
+fixed_point_sub u_subNormalZ (.a(hitZ), .b(bestCz), .diff(normalRawZ));
+
+fixed_vec3_normalize u_normalizeNormal (
+    .x(normalRawX), .y(normalRawY), .z(normalRawZ),
+    .nx(normalX), .ny(normalY), .nz(normalZ)
+);
+
 always_comb begin
-    if (hit && scene_valid) begin
-        rgb_r = (accumR > 18'd255) ? 8'd255 : accumR[7:0];
-        rgb_g = (accumG > 18'd255) ? 8'd255 : accumG[7:0];
-        rgb_b = (accumB > 18'd255) ? 8'd255 : accumB[7:0];
+    accumRInt = bestColorR >>> 3;
+    accumGInt = bestColorG >>> 3;
+    accumBInt = bestColorB >>> 3;
+
+    for (lightIndex = 0; lightIndex < SCENE_LIGHT_COUNT; lightIndex = lightIndex + 1) begin
+        sceneLightGet(lightIndex[7:0], lightX, lightY, lightZ, lightColorR, lightColorG, lightColorB, lightIntensity);
+
+        ndotlInt = ((normalX * (lightX - hitX)) >>> 4) +
+                   ((normalY * (lightY - hitY)) >>> 4) +
+                   ((normalZ * (lightZ - hitZ)) >>> 4);
+
+        if (ndotlInt > 0) begin
+            diffuseQInt = (ndotlInt * lightIntensity) >>> 4;
+            if (diffuseQInt > 16) diffuseQInt = 16;
+
+            contribR = (((bestColorR * lightColorR) >> 8) * diffuseQInt) >> 4;
+            contribG = (((bestColorG * lightColorG) >> 8) * diffuseQInt) >> 4;
+            contribB = (((bestColorB * lightColorB) >> 8) * diffuseQInt) >> 4;
+
+            accumRInt = accumRInt + contribR;
+            accumGInt = accumGInt + contribG;
+            accumBInt = accumBInt + contribB;
+        end
+    end
+
+    reflMix = bestRefl;
+    if (reflMix < 0) reflMix = 0;
+    if (reflMix > 16) reflMix = 16;
+
+    finalR = ((accumRInt * (16 - reflMix)) + (255 * reflMix)) >> 4;
+    finalG = ((accumGInt * (16 - reflMix)) + (255 * reflMix)) >> 4;
+    finalB = ((accumBInt * (16 - reflMix)) + (255 * reflMix)) >> 4;
+
+    if (shadeValid && bestHit) begin
+        rgb_r = clamp8(finalR);
+        rgb_g = clamp8(finalG);
+        rgb_b = clamp8(finalB);
     end else begin
         rgb_r = 8'd0;
         rgb_g = 8'd0;

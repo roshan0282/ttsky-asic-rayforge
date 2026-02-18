@@ -1,11 +1,3 @@
-/*
- * Bare-Metal RISC-V Raycasting Engine
- * Single-file version for CPUlator
- * Target: DE1-SoC with Nios V (RISC-V)
- * Controls: WASD keys via PS/2 keyboard
- * Features: 3D raycasting view + minimap
- */
-
 #include <stdint.h>
 #include <math.h>
 

@@ -31,24 +31,24 @@ endmodule
 module fixed_point_mul #(parameter WIDTH = 12) (
     input  signed [WIDTH-1:0] a,
     input  signed [WIDTH-1:0] b,
-    output signed [WIDTH-1:0] prod
+    output reg signed [WIDTH-1:0] prod
 );
-    wire signed [2*WIDTH-1:0] fullProd = a * b;
-    wire signed [2*WIDTH-1:0] withRound = fullProd + 20'h8; // Add 0.5 for half round up
+    localparam signed [WIDTH-1:0] MAX_Q = {1'b0, {(WIDTH-1){1'b1}}};
+    localparam signed [WIDTH-1:0] MIN_Q = {1'b1, {(WIDTH-1){1'b0}}};
 
-    // Check saturation on the rounded value
-    localparam MAX_POS = 20'h7FF;
-    localparam MIN_NEG = 20'h800;
-    localparam MAX_SHIFTED = (MAX_POS << 4) + 20'hF;
-    localparam MIN_SHIFTED = (MIN_NEG << 4);
+    wire signed [2*WIDTH-1:0] fullProd  = a * b;
+    wire signed [2*WIDTH-1:0] roundBias = {{(2*WIDTH-5){1'b0}}, 4'b1000};
+    wire signed [2*WIDTH-1:0] rounded   = fullProd + roundBias;
+    wire signed [2*WIDTH-1:0] shifted   = rounded >>> 4;
 
     always @(*) begin
-        if (withRound > MAX_SHIFTED)
-            prod = MAX_POS;
-        else if (withRound < MIN_SHIFTED)
-            prod = MIN_NEG;
-        else
-            prod = withRound >>> 4; 
+        if (shifted > $signed(MAX_Q)) begin
+            prod = MAX_Q;
+        end else if (shifted < $signed(MIN_Q)) begin
+            prod = MIN_Q;
+        end else begin
+            prod = shifted[WIDTH-1:0];
+        end
     end
 endmodule
 
@@ -56,31 +56,38 @@ endmodule
 module fixed_point_div #(parameter WIDTH = 12) (
     input  signed [WIDTH-1:0] a,
     input  signed [WIDTH-1:0] b,
-    output signed [WIDTH-1:0] quot,
+    output reg signed [WIDTH-1:0] quot,
     output reg                errorFlag
 );
-    // Check divide by zero
-    localparam MAX_POS = 20'h7FF;
-    localparam MIN_NEG = 20'h800;    
+    localparam signed [WIDTH-1:0] MAX_Q = {1'b0, {(WIDTH-1){1'b1}}};
+    localparam signed [WIDTH-1:0] MIN_Q = {1'b1, {(WIDTH-1){1'b0}}};
 
-    reg signed [2*WIDTH-1:0] dividend_shifted;
+    reg signed [2*WIDTH-1:0] dividendShifted;
+    reg signed [2*WIDTH-1:0] quotientWide;
 
     always @(*) begin
-        // Default assignments
         errorFlag = 1'b0;
-        quot = 0;
-        dividedShifted = a <<< 4;
+        quot = {WIDTH{1'b0}};
+        dividendShifted = a <<< 4;
+        quotientWide = {2*WIDTH{1'b0}};
 
         if (b == 0) begin
             errorFlag = 1'b1;
-
-            // Saturate based on dividend sign
-            if (a >= 0)
-                quot = MAX_POS;
-            else
-                quot = MIN_NEG;
-        end else
-            quot  = dividedShifted / b
+            if (a >= 0) begin
+                quot = MAX_Q;
+            end else begin
+                quot = MIN_Q;
+            end
+        end else begin
+            quotientWide = dividendShifted / b;
+            if (quotientWide > $signed(MAX_Q)) begin
+                quot = MAX_Q;
+            end else if (quotientWide < $signed(MIN_Q)) begin
+                quot = MIN_Q;
+            end else begin
+                quot = quotientWide[WIDTH-1:0];
+            end
+        end
     end
 endmodule
 
@@ -93,43 +100,43 @@ module fixed_point_dot #(parameter WIDTH = 12) (
     assign dot = ((ax * bx) >>> 4) + ((ay * by) >>> 4) + ((az * bz) >>> 4); // Q8.4
 endmodule
 
-// Fixed Point Square Root (Newton-Raphson, placeholder)
+// Fixed Point Square Root (Q8.4, combinational integer sqrt)
 module fixed_point_sqrt #(
-    parameter WIDTH = 12,
-    parameter ITERATIONS = 4
+    parameter WIDTH = 12
     ) (
     input  signed [WIDTH-1:0] a,
-    output signed [WIDTH-1:0] root
+    output reg signed [WIDTH-1:0] root
 );
-    // Internal registers
-    reg signed [2*WIDTH-1:0] guess;
-    reg signed [2*WIDTH-1:0] newGuess;
-    reg signed [2*WIDTH-1:0] quot;
     integer i;
-
-    // Constants
-    localparam INIT_GUESS = 160;    // 10 in Q8.4
-    localparam ZERO = {WIDTH{1'b0}};
+    reg [31:0] val;
+    reg [31:0] rem;
+    reg [15:0] intRoot;
+    reg [17:0] trial;
 
     always @(*) begin
-        if (a == 0) begin
-            root = 0;
+        if (a <= 0) begin
+            root = {WIDTH{1'b0}};
         end else begin
-            guess = INIT_GUESS;
+            val = $unsigned(a) <<< 4;
+            rem = 32'd0;
+            intRoot = 16'd0;
 
-            // Newton-Raphson iterations
-            for (i = 0; i < ITERATIONS; i = i + 1) begin
-                // Maintain precision by (a <<< 4) / guess
-                quot = (a <<< 4) / guess;
-
-                // newGuess = (guess + quot) / 2
-                newGuess = (guess + quot) >>> 1;
-                guess = newGuess;
-
+            for (i = 0; i < 16; i = i + 1) begin
+                rem = {rem[29:0], val[31 - 2*i -: 2]};
+                trial = {intRoot, 2'b01};
+                if (rem >= trial) begin
+                    rem = rem - trial;
+                    intRoot = {intRoot[14:0], 1'b1};
+                end else begin
+                    intRoot = {intRoot[14:0], 1'b0};
+                end
             end
 
-            // Final result after ITERATIONS
-            root = guess[WIDTH-1:0];
+            if ($signed({1'b0, intRoot[10:0]}) > $signed({1'b0, {(WIDTH-1){1'b1}}})) begin
+                root = {1'b0, {(WIDTH-1){1'b1}}};
+            end else begin
+                root = $signed({1'b0, intRoot[10:0]});
+            end
         end
     end
 endmodule
@@ -141,7 +148,7 @@ module fixed_point_sqrt_pipe #(
     )(
         input                     clk,
         input  signed [WIDTH-1:0] a,
-        output signed [WIDTH-1:0] root,
+        output reg signed [WIDTH-1:0] root,
         output reg                valid
     );
 
@@ -172,8 +179,8 @@ module fixed_point_sqrt_pipe #(
         end
 
         // Sqrt valid only once last stage has valid = 1
-        valid <= valid_reg[STAGES];
-        sqrt <= guessReg[STAGES];
+        valid <= validReg[STAGES];
+        root <= guessReg[STAGES][WIDTH-1:0];
     end
 
 endmodule
@@ -186,13 +193,35 @@ module fixed_point_neg #(parameter WIDTH = 12) (
     assign neg = -a;
 endmodule
 
-// Fixed Point Reciprocal (placeholder)
+// Fixed Point Reciprocal (Q8.4)
 module fixed_point_recip #(parameter WIDTH = 12) (
     input  signed [WIDTH-1:0] a,
-    output signed [WIDTH-1:0] recip
+    output reg signed [WIDTH-1:0] recip
 );
-    // TODO(primitives): implement reciprocal approximation + refinement in Q8.4.
-    assign recip = 0;
+    localparam signed [WIDTH-1:0] MAX_Q = {1'b0, {(WIDTH-1){1'b1}}};
+    localparam signed [WIDTH-1:0] MIN_Q = {1'b1, {(WIDTH-1){1'b0}}};
+    reg signed [2*WIDTH-1:0] num;
+    reg signed [2*WIDTH-1:0] qWide;
+
+    always @(*) begin
+        num = (1 <<< 8); // 1.0 in Q8.4 shifted by frac bits again
+        if (a == 0) begin
+            if (a[WIDTH-1] == 1'b0) begin
+                recip = MAX_Q;
+            end else begin
+                recip = MIN_Q;
+            end
+        end else begin
+            qWide = num / a;
+            if (qWide > $signed(MAX_Q)) begin
+                recip = MAX_Q;
+            end else if (qWide < $signed(MIN_Q)) begin
+                recip = MIN_Q;
+            end else begin
+                recip = qWide[WIDTH-1:0];
+            end
+        end
+    end
 endmodule
 
 // Fixed Vector Subtraction (3D)
@@ -239,14 +268,42 @@ module fixed_vec3_cross #(parameter WIDTH = 12) (
     assign rz = (ax * by - ay * bx) >>> 4;
 endmodule
 
-// Fixed Vector Normalization (placeholder)
+// Fixed Vector Normalization (Q8.4)
 module fixed_vec3_normalize #(parameter WIDTH = 12) (
     input  signed [WIDTH-1:0] x, y, z,
     output signed [WIDTH-1:0] nx, ny, nz
 );
-    // TODO(primitives): implement normalize(v)=v/|v| using fixed_point_sqrt + fixed_point_div.
-    // TODO(primitives): handle zero-length vector safely.
-    assign nx = 0;
-    assign ny = 0;
-    assign nz = 0;
+    wire signed [WIDTH-1:0] mag2;
+    wire signed [WIDTH-1:0] mag;
+    wire signed [WIDTH-1:0] nxWire;
+    wire signed [WIDTH-1:0] nyWire;
+    wire signed [WIDTH-1:0] nzWire;
+    wire divErrX;
+    wire divErrY;
+    wire divErrZ;
+
+    fixed_point_dot #(.WIDTH(WIDTH)) u_mag2 (
+        .ax(x), .ay(y), .az(z),
+        .bx(x), .by(y), .bz(z),
+        .dot(mag2)
+    );
+
+    fixed_point_sqrt #(.WIDTH(WIDTH)) u_magSqrt (
+        .a(mag2),
+        .root(mag)
+    );
+
+    fixed_point_div #(.WIDTH(WIDTH)) u_divX (
+        .a(x), .b(mag), .quot(nxWire), .errorFlag(divErrX)
+    );
+    fixed_point_div #(.WIDTH(WIDTH)) u_divY (
+        .a(y), .b(mag), .quot(nyWire), .errorFlag(divErrY)
+    );
+    fixed_point_div #(.WIDTH(WIDTH)) u_divZ (
+        .a(z), .b(mag), .quot(nzWire), .errorFlag(divErrZ)
+    );
+
+    assign nx = (mag == 0) ? 0 : nxWire;
+    assign ny = (mag == 0) ? 0 : nyWire;
+    assign nz = (mag == 0) ? 0 : nzWire;
 endmodule

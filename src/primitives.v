@@ -114,6 +114,10 @@ module fixed_point_sqrt #(
     reg [17:0] trial;
 
     always @(*) begin
+        val     = 32'b0;
+        intRoot = 16'b0;
+        rem     = 32'b0;
+        trial   = 18'b0;
         if (a <= 0) begin
             root = {WIDTH{1'b0}};
         end else begin

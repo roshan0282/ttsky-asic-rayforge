@@ -249,6 +249,17 @@ end
 endgenerate
 
 always_comb begin
+    diffuseQInt = '0;
+    contribR    = '0;
+    contribG    = '0;
+    contribB    = '0;
+    reflMix     = '0;
+    finalR      = '0;
+    finalG      = '0;
+    finalB      = '0;
+    red         = '0;
+    green       = '0;
+    blue        = '0;
     accumRInt = bestColorR >>> 3;
     accumGInt = bestColorG >>> 3;
     accumBInt = bestColorB >>> 3;

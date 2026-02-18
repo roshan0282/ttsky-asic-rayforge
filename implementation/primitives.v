@@ -33,8 +33,23 @@ module fixed_point_mul #(parameter WIDTH = 12) (
     input  signed [WIDTH-1:0] b,
     output signed [WIDTH-1:0] prod
 );
-    // TODO(primitives): add rounding and saturation options (currently truncates and may overflow).
-    assign prod = (a * b) >>> 4; // Q8.4: shift by 4 to keep Q8.4
+    wire signed [2*WIDTH-1:0] fullProd = a * b;
+    wire signed [2*WIDTH-1:0] withRound = fullProd + 20'h8; // Add 0.5 for half round up
+
+    // Check saturation on the rounded value
+    localparam MAX_POS = 20'h7FF;
+    localparam MIN_NEG = 20'h800;
+    localparam MAX_SHIFTED = (MAX_POS << 4) + 20'hF;
+    localparam MIN_SHIFTED = (MIN_NEG << 4);
+
+    always @(*) begin
+        if (withRound > MAX_SHIFTED)
+            prod = MAX_POS;
+        else if (withRound < MIN_SHIFTED)
+            prod = MIN_NEG;
+        else
+            prod = withRound >>> 4; 
+    end
 endmodule
 
 // Fixed Point Division

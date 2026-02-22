@@ -12,6 +12,13 @@ jobs:
       # - name: Install iverilog
       #   shell: bash
       #   run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Create swap space
+        run: |
+          sudo fallocate -l 4G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+
       - name: Install Verilator from source
         run: |
           sudo apt-get update && sudo apt-get install -y git autoconf flex bison libfl-dev
@@ -20,7 +27,7 @@ jobs:
           git checkout v5.036
           autoconf
           ./configure
-          make -j$(nproc)
+          make -j1        # use -j1 instead of -j$(nproc) to reduce memory pressure
           sudo make install
 
       # Set Python up and install cocotb

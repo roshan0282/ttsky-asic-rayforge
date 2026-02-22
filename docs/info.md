@@ -8,13 +8,49 @@ You can also include images in this folder and reference them in the markdown. E
 -->
 
 ## How it works
-do it urself idk
-Explain how your project works
+
+This design implements a combinational hardware raytracer in SystemVerilog, targeting the Tiny Tapeout platform.
+
+**Architecture overview:**
+
+The top-level module (`tt_um_asic`) wires the 8-bit `ui_in` bus directly into the `asic` wrapper, which instantiates `raytracer_top`. The raytracer evaluates each pixel **combinationally** — given a pixel coordinate and `pixel_valid`, the RGB output is produced in the same clock cycle with no cross-pixel state.
+
+**Fixed-point arithmetic:**
+
+All math uses **Q16.16** signed fixed-point (32-bit): 16 integer bits + 16 fractional bits, where 1.0 = `65536`. Primitive operations (add, subtract, multiply, divide, square root, dot product) are defined in `primitives.v`. Multiply uses rounding: `(a × b + 32768) >> 16`. Division handles divide-by-zero by saturating to ±MAX_INT. Square root uses a 24-iteration digit-by-digit binary algorithm.
+
+**Scene and ray tracing:**
+
+- **Scene**: 4 spheres, 4 point lights (coordinates and colors are zero-initialized in the current source — intended to be driven by future configuration logic).
+- **Camera**: Origin at (0, 0, 0), looking down +Z. Each pixel ray direction is computed from the centered screen coordinate: `(pixel_x − 320, 240 − pixel_y)` for a 640×480 frame, then normalized.
+- **Intersection**: Ray-sphere intersection uses the half-vector discriminant method (`disc = halfB² − a·c`). The closest positive-t hit is selected.
+- **Shading**: Diffuse lighting is computed as `N·L` clamped to [0, 1], scaled by light intensity and sphere color. An ambient term (1/8 of sphere color) is always added.
+- **Shadows**: For each light, a shadow ray is cast from the hit point (offset by ε·N to avoid self-intersection). If any sphere blocks the ray before the light, the diffuse contribution from that light is skipped.
+- **Reflections**: Up to `MAX_BOUNCES = 4` bounces per pixel. The reflected ray direction is `d − 2(d·N)N`. Each bounce multiplies the color contribution by the sphere's reflectivity (`refl_arr`). Bouncing stops when reflectivity is zero, weight drops below 1, or `MAX_ITERATIONS = 8` total ray-sphere tests are exhausted.
+- **Background**: Pixels that miss all spheres contribute a flat dark blue `(0, 0, 32)`.
+- **Output**: Accumulated RGB components are clamped to `[0, 255]` and driven on `rgb_r/g/b`. The `asic` wrapper outputs `red & green & blue` (bitwise AND) on `uo_out`.
 
 ## How to test
-do it urself idk
-Explain how to use your project
+
+Drive the `ui_in` pins as follows (via Tiny Tapeout's standard interface):
+
+| `ui_in` bit | Signal | Description |
+|------------|--------|-------------|
+| `[0]` | `clk` | Clock input to the raytracer |
+| `[1]` | `rst_n` | Active-low reset. Hold low to reset, then release high to run |
+| `[2]` | `pixel_x` | Replicated ×10 to form the 10-bit X coordinate (0 or 1023 only in this mapping) |
+| `[3]` | `pixel_y` | Replicated ×9 to form the 9-bit Y coordinate (0 or 511 only in this mapping) |
+| `[4]` | `pixel_valid` | Assert high to enable output; output is zeroed when low |
+
+To test:
+1. Assert `rst_n = 0` for at least one cycle, then release (`rst_n = 1`).
+2. Set `pixel_valid = 1`.
+3. Drive `pixel_x` and `pixel_y` to select a screen position.
+4. Read `uo_out` — this carries `red & green & blue` (bitwise AND of all three 8-bit color channels).
+5. Sweep through pixel coordinates to render a full frame.
+
+For simulation, use the provided testbench to drive pixel coordinates across the 640×480 range and capture RGB output for each pixel.
 
 ## External hardware
-do it urself idk
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+
+External buffer and resistors for vga, as well as UART for scene loading

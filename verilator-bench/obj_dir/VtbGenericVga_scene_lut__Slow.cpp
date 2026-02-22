@@ -7,7 +7,7 @@
 #include "VtbGenericVga_scene_lut.h"
 
 // Parameter definitions for VtbGenericVga_scene_lut
-constexpr VlUnpacked<VlWide<5>/*151:0*/, 2> VtbGenericVga_scene_lut::LIGHTS;
+constexpr VlUnpacked<VlWide<5>/*151:0*/, 1> VtbGenericVga_scene_lut::LIGHTS;
 
 
 void VtbGenericVga_scene_lut___ctor_var_reset(VtbGenericVga_scene_lut* vlSelf);

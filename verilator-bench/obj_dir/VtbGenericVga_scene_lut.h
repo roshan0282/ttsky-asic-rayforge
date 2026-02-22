@@ -17,14 +17,10 @@ class alignas(VL_CACHE_LINE_BYTES) VtbGenericVga_scene_lut final : public Verila
     VtbGenericVga__Syms* const vlSymsp;
 
     // PARAMETERS
-    static constexpr VlUnpacked<VlWide<5>/*151:0*/, 2> LIGHTS = {{
+    static constexpr VlUnpacked<VlWide<5>/*151:0*/, 1> LIGHTS = {{
         {{ // VlWide 0
-            0x00018000, 0xbeff9900, 0xcf00087e, 0x0000003e,
-            0x00000000
-        }},
-        {{ // VlWide 1
-            0x00010000, 0xa6eeff00, 0x580003a6, 0x000002ec,
-            0x00000000
+            0x00018000, 0x02fff5e6, 0x660002f9, 0xcd0003ea,
+            0x00fffe3b
         }}
     }};
 

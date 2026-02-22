@@ -21,13 +21,10 @@ VL_INLINE_OPT void VtbGenericVga___024root___ico_sequent__TOP__0(VtbGenericVga__
     VL_DEBUG_IF(VL_DBG_MSGF("+    VtbGenericVga___024root___ico_sequent__TOP__0\n"); );
     VtbGenericVga__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
-    // Init
-    CData/*0:0*/ tbGenericVga__DOT__dut__DOT__output_valid;
-    tbGenericVga__DOT__dut__DOT__output_valid = 0;
     // Body
-    tbGenericVga__DOT__dut__DOT__output_valid = ((IData)(vlSelfRef.resetn) 
-                                                 & (IData)(vlSelfRef.tbGenericVga__DOT__visibleReg));
-    if (tbGenericVga__DOT__dut__DOT__output_valid) {
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__output_valid 
+        = ((IData)(vlSelfRef.resetn) & (IData)(vlSelfRef.tbGenericVga__DOT__visibleReg));
+    if (vlSelfRef.tbGenericVga__DOT__dut__DOT__output_valid) {
         vlSelfRef.red = vlSelfRef.tbGenericVga__DOT__dut__DOT__final_r_comb;
         vlSelfRef.green = vlSelfRef.tbGenericVga__DOT__dut__DOT__final_g_comb;
         vlSelfRef.blue = vlSelfRef.tbGenericVga__DOT__dut__DOT__final_b_comb;
@@ -62,6 +59,7 @@ void VtbGenericVga___024root___eval_act(VtbGenericVga___024root* vlSelf) {
 }
 
 void VtbGenericVga___024root___nba_sequent__TOP__0(VtbGenericVga___024root* vlSelf);
+void VtbGenericVga___024root___nba_sequent__TOP__1(VtbGenericVga___024root* vlSelf);
 
 void VtbGenericVga___024root___eval_nba(VtbGenericVga___024root* vlSelf) {
     VL_DEBUG_IF(VL_DBG_MSGF("+    VtbGenericVga___024root___eval_nba\n"); );
@@ -70,6 +68,60 @@ void VtbGenericVga___024root___eval_nba(VtbGenericVga___024root* vlSelf) {
     // Body
     if ((1ULL & vlSelfRef.__VnbaTriggered.word(0U))) {
         VtbGenericVga___024root___nba_sequent__TOP__0(vlSelf);
+        VtbGenericVga___024root___nba_sequent__TOP__1(vlSelf);
+    }
+}
+
+VL_INLINE_OPT void VtbGenericVga___024root___nba_sequent__TOP__1(VtbGenericVga___024root* vlSelf) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+    VtbGenericVga___024root___nba_sequent__TOP__1\n"); );
+    VtbGenericVga__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
+    auto& vlSelfRef = std::ref(*vlSelf).get();
+    // Init
+    CData/*7:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__61__Vfuncout;
+    __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__61__Vfuncout = 0;
+    IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__61__v;
+    __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__61__v = 0;
+    CData/*7:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__62__Vfuncout;
+    __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__62__Vfuncout = 0;
+    IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__62__v;
+    __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__62__v = 0;
+    CData/*7:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__63__Vfuncout;
+    __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__63__Vfuncout = 0;
+    IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__63__v;
+    __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__63__v = 0;
+    // Body
+    __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__61__v 
+        = vlSelfRef.tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__accum_r_i;
+    __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__61__Vfuncout 
+        = (VL_GTS_III(32, 0U, __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__61__v)
+            ? 0U : (VL_LTS_III(32, 0xffU, __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__61__v)
+                     ? 0xffU : (0xffU & __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__61__v)));
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__final_r_comb 
+        = __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__61__Vfuncout;
+    __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__62__v 
+        = vlSelfRef.tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__accum_g_i;
+    __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__62__Vfuncout 
+        = (VL_GTS_III(32, 0U, __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__62__v)
+            ? 0U : (VL_LTS_III(32, 0xffU, __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__62__v)
+                     ? 0xffU : (0xffU & __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__62__v)));
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__final_g_comb 
+        = __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__62__Vfuncout;
+    __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__63__v 
+        = vlSelfRef.tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__accum_b_i;
+    __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__63__Vfuncout 
+        = (VL_GTS_III(32, 0U, __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__63__v)
+            ? 0U : (VL_LTS_III(32, 0xffU, __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__63__v)
+                     ? 0xffU : (0xffU & __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__63__v)));
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__final_b_comb 
+        = __Vfunc_tbGenericVga__DOT__dut__DOT__clamp_u8_fn__63__Vfuncout;
+    if (vlSelfRef.tbGenericVga__DOT__dut__DOT__output_valid) {
+        vlSelfRef.red = vlSelfRef.tbGenericVga__DOT__dut__DOT__final_r_comb;
+        vlSelfRef.green = vlSelfRef.tbGenericVga__DOT__dut__DOT__final_g_comb;
+        vlSelfRef.blue = vlSelfRef.tbGenericVga__DOT__dut__DOT__final_b_comb;
+    } else {
+        vlSelfRef.red = 0U;
+        vlSelfRef.green = 0U;
+        vlSelfRef.blue = 0x20U;
     }
 }
 

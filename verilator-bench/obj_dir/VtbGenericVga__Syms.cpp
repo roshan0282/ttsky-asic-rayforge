@@ -21,7 +21,7 @@ VtbGenericVga__Syms::VtbGenericVga__Syms(VerilatedContext* contextp, const char*
     , TOP__scene_lut{this, Verilated::catName(namep, "scene_lut")}
 {
         // Check resources
-        Verilated::stackCheck(707);
+        Verilated::stackCheck(653);
     // Configure time unit / time precision
     _vm_contextp__->timeunit(-9);
     _vm_contextp__->timeprecision(-12);

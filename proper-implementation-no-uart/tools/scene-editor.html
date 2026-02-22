@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scene LUT Editor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: monospace; display: flex; height: 100vh; overflow: hidden; }
+        #sidebar { width: 350px; overflow-y: auto; border-right: 2px solid #333; padding: 10px; background: #f5f5f5; }
+        #viewport { flex: 1; position: relative; background: #1a1a1a; display: flex; justify-content: center; align-items: center; }
+        #viewport canvas { display: block; max-width: 100%; max-height: 100%; }
+        h2 { margin: 15px 0 5px; font-size: 14px; }
+        h3 { margin: 10px 0 5px; font-size: 12px; color: #555; }
+        button { margin: 5px 2px; padding: 5px 10px; cursor: pointer; }
+        input, select { width: 100%; margin: 2px 0; padding: 4px; }
+        .sphere-item, .light-item { border: 1px solid #999; padding: 8px; margin: 5px 0; background: white; }
+        .sphere-item.selected, .light-item.selected { border-color: #00f; background: #e6f2ff; }
+        .color-preview { width: 40px; height: 20px; display: inline-block; border: 1px solid #000; vertical-align: middle; }
+        .remove-btn { background: #f44; color: white; border: none; }
+        .export-btn { background: #4a4; color: white; border: none; padding: 8px 15px; }
+        #info { position: absolute; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.7); padding: 10px; font-size: 11px; }
+        label { display: block; margin-top: 5px; font-size: 11px; }
+        .inline { display: flex; gap: 5px; }
+        .inline input { flex: 1; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h2>CAMERA</h2>
+        <div class="inline">
+            <div><label>X</label><input type="number" id="cam-x" value="0" step="0.1"></div>
+            <div><label>Y</label><input type="number" id="cam-y" value="0" step="0.1"></div>
+            <div><label>Z</label><input type="number" id="cam-z" value="0" step="0.1"></div>
+        </div>
+
+        <h2>Q16.16 LIMITS</h2>
+        <div style="font-size: 10px; padding: 5px; background: #fff; border: 1px solid #999;">
+            Max positive: 32767.99998<br>
+            Min negative: -32768.0<br>
+            Precision: 0.0000152587<br>
+            <strong>Recommended draw distance: ±1000</strong>
+        </div>
+
+        <h2>SPHERES <button onclick="addSphere()">+ Add</button></h2>
+        <div id="spheres-list"></div>
+
+        <h2>LIGHTS <button onclick="addLight()">+ Add</button></h2>
+        <div id="lights-list"></div>
+
+        <h2>EXPORT</h2>
+        <button class="export-btn" onclick="exportSceneLUT()">Download scene_lut.sv</button>
+        <button onclick="copyToClipboard()">Copy to Clipboard</button>
+    </div>
+
+    <div id="viewport">
+        <div id="info">
+            <strong>Controls:</strong><br>
+            Double-click object: Select & show arrows<br>
+            Drag arrows: Move along axis<br>
+            Left drag: Rotate view<br>
+            Right drag: Pan<br>
+            Wheel: Zoom<br>
+            Double-click empty: Deselect
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+    <script>
+        // Scene data
+        let camera = { x: 0, y: 0, z: 0 };
+        let spheres = [
+            { cx: -1.75, cy: 0, cz: 6, radius: 1.5, r: 255, g: 80, b: 60, reflectivity: 0.65 },
+            { cx: 1.75, cy: 0, cz: 6, radius: 1.5, r: 60, g: 160, b: 255, reflectivity: 0.65 },
+            { cx: 0, cy: -4, cz: 6.5, radius: 3.0, r: 220, g: 220, b: 220, reflectivity: 0.15 }
+        ];
+        let lights = [
+            { lx: 0, ly: 5, lz: 6, r: 255, g: 245, b: 230, intensity: 1.5 }
+        ];
+
+        let selectedSphere = null;
+        let selectedLight = null;
+
+        // Three.js setup
+        const scene = new THREE.Scene();
+        const viewport = document.getElementById('viewport');
+        const threeCamera = new THREE.PerspectiveCamera(75, viewport.clientWidth / viewport.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+        viewport.appendChild(renderer.domElement);
+
+        scene.background = new THREE.Color(0x1a1a1a);
+        threeCamera.position.set(0, 2, -5);
+        threeCamera.lookAt(0, 0, 6);
+
+        // Scene center for rotation
+        const sceneCenter = new THREE.Vector3(0, 0, 6);
+
+        // Transform controls
+        const transformControls = new THREE.TransformControls(threeCamera, renderer.domElement);
+        transformControls.setMode('translate');
+        transformControls.setSize(1);
+        scene.add(transformControls);
+
+        // Disable rotation when dragging with transform controls
+        transformControls.addEventListener('dragging-changed', (event) => {
+            isTransformDragging = event.value;
+        });
+
+        transformControls.addEventListener('change', () => {
+            if (transformControls.object) {
+                const pos = transformControls.object.position;
+                const type = transformControls.object.userData.type;
+                const index = transformControls.object.userData.index;
+                
+                if (type === 'sphere') {
+                    spheres[index].cx = pos.x;
+                    spheres[index].cy = pos.y;
+                    spheres[index].cz = pos.z;
+                } else if (type === 'light') {
+                    lights[index].lx = pos.x;
+                    lights[index].ly = pos.y;
+                    lights[index].lz = pos.z;
+                }
+                updateUI();
+            }
+        });
+
+        // Grid
+        const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
+        scene.add(gridHelper);
+
+        // Axes
+        const axesHelper = new THREE.AxesHelper(5);
+        scene.add(axesHelper);
+
+        // Camera indicator
+        const camGeom = new THREE.ConeGeometry(0.2, 0.5, 4);
+        const camMat = new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true });
+        const camMesh = new THREE.Mesh(camGeom, camMat);
+        camMesh.rotation.x = -Math.PI / 2;
+        scene.add(camMesh);
+
+        // Sphere meshes
+        let sphereMeshes = [];
+        let lightMeshes = [];
+
+        function rgbToHex(r, g, b) {
+            return (r << 16) | (g << 8) | b;
+        }
+
+        function updateScene() {
+            // Update camera position
+            camMesh.position.set(camera.x, camera.y, camera.z);
+
+            // Clear old meshes
+            sphereMeshes.forEach(m => scene.remove(m));
+            lightMeshes.forEach(m => scene.remove(m));
+            sphereMeshes = [];
+            lightMeshes = [];
+
+            // Add sphere meshes
+            spheres.forEach((s, i) => {
+                const geom = new THREE.SphereGeometry(s.radius, 16, 16);
+                const mat = new THREE.MeshBasicMaterial({
+                    color: rgbToHex(s.r, s.g, s.b),
+                    wireframe: true
+                });
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.set(s.cx, s.cy, s.cz);
+                mesh.userData = { type: 'sphere', index: i };
+                scene.add(mesh);
+                sphereMeshes.push(mesh);
+            });
+
+            // Add light meshes
+            lights.forEach((l, i) => {
+                const geom = new THREE.SphereGeometry(0.3, 8, 8);
+                const mat = new THREE.MeshBasicMaterial({ 
+                    color: rgbToHex(l.r, l.g, l.b),
+                    wireframe: true
+                });
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.set(l.lx, l.ly, l.lz);
+                mesh.userData = { type: 'light', index: i };
+                
+                scene.add(mesh);
+                lightMeshes.push(mesh);
+            });
+
+            updateUI();
+        }
+
+        function updateUI() {
+            // Update camera inputs
+            document.getElementById('cam-x').value = camera.x;
+            document.getElementById('cam-y').value = camera.y;
+            document.getElementById('cam-z').value = camera.z;
+
+            // Update spheres list
+            const spheresList = document.getElementById('spheres-list');
+            spheresList.innerHTML = '';
+            spheres.forEach((s, i) => {
+                const div = document.createElement('div');
+                div.className = 'sphere-item' + (selectedSphere === i ? ' selected' : '');
+                div.innerHTML = `
+                    <h3>Sphere ${i}</h3>
+                    <label>Position XYZ</label>
+                    <div class="inline">
+                        <input type="number" step="0.1" value="${s.cx}" onchange="spheres[${i}].cx = parseFloat(this.value); updateScene()">
+                        <input type="number" step="0.1" value="${s.cy}" onchange="spheres[${i}].cy = parseFloat(this.value); updateScene()">
+                        <input type="number" step="0.1" value="${s.cz}" onchange="spheres[${i}].cz = parseFloat(this.value); updateScene()">
+                    </div>
+                    <label>Radius</label>
+                    <input type="number" step="0.1" value="${s.radius}" onchange="spheres[${i}].radius = parseFloat(this.value); updateScene()">
+                    <label>Color</label>
+                    <input type="color" value="#${s.r.toString(16).padStart(2,'0')}${s.g.toString(16).padStart(2,'0')}${s.b.toString(16).padStart(2,'0')}" 
+                           onchange="const c=this.value; spheres[${i}].r=parseInt(c.substr(1,2),16); spheres[${i}].g=parseInt(c.substr(3,2),16); spheres[${i}].b=parseInt(c.substr(5,2),16); updateScene()">
+                    <div class="inline">
+                        <input type="number" min="0" max="255" value="${s.r}" onchange="spheres[${i}].r = parseInt(this.value); updateScene()">
+                        <input type="number" min="0" max="255" value="${s.g}" onchange="spheres[${i}].g = parseInt(this.value); updateScene()">
+                        <input type="number" min="0" max="255" value="${s.b}" onchange="spheres[${i}].b = parseInt(this.value); updateScene()">
+                    </div>
+                    <label>Reflectivity (0.0-1.0)</label>
+                    <input type="number" step="0.01" min="0" max="1" value="${s.reflectivity}" onchange="spheres[${i}].reflectivity = parseFloat(this.value); updateScene()">
+                    <button class="remove-btn" onclick="removeSphere(${i})">Remove</button>
+                `;
+                spheresList.appendChild(div);
+            });
+
+            // Update lights list
+            const lightsList = document.getElementById('lights-list');
+            lightsList.innerHTML = '';
+            lights.forEach((l, i) => {
+                const div = document.createElement('div');
+                div.className = 'light-item' + (selectedLight === i ? ' selected' : '');
+                div.innerHTML = `
+                    <h3>Light ${i}</h3>
+                    <label>Position XYZ</label>
+                    <div class="inline">
+                        <input type="number" step="0.1" value="${l.lx}" onchange="lights[${i}].lx = parseFloat(this.value); updateScene()">
+                        <input type="number" step="0.1" value="${l.ly}" onchange="lights[${i}].ly = parseFloat(this.value); updateScene()">
+                        <input type="number" step="0.1" value="${l.lz}" onchange="lights[${i}].lz = parseFloat(this.value); updateScene()">
+                    </div>
+                    <label>Color</label>
+                    <input type="color" value="#${l.r.toString(16).padStart(2,'0')}${l.g.toString(16).padStart(2,'0')}${l.b.toString(16).padStart(2,'0')}" 
+                           onchange="const c=this.value; lights[${i}].r=parseInt(c.substr(1,2),16); lights[${i}].g=parseInt(c.substr(3,2),16); lights[${i}].b=parseInt(c.substr(5,2),16); updateScene()">
+                    <div class="inline">
+                        <input type="number" min="0" max="255" value="${l.r}" onchange="lights[${i}].r = parseInt(this.value); updateScene()">
+                        <input type="number" min="0" max="255" value="${l.g}" onchange="lights[${i}].g = parseInt(this.value); updateScene()">
+                        <input type="number" min="0" max="255" value="${l.b}" onchange="lights[${i}].b = parseInt(this.value); updateScene()">
+                    </div>
+                    <label>Intensity</label>
+                    <input type="number" step="0.1" value="${l.intensity}" onchange="lights[${i}].intensity = parseFloat(this.value); updateScene()">
+                    <button class="remove-btn" onclick="removeLight(${i})">Remove</button>
+                `;
+                lightsList.appendChild(div);
+            });
+        }
+
+        function addSphere() {
+            spheres.push({ cx: 0, cy: 0, cz: 6, radius: 1, r: 128, g: 128, b: 128, reflectivity: 0.5 });
+            updateScene();
+        }
+
+        function removeSphere(i) {
+            spheres.splice(i, 1);
+            selectedSphere = null;
+            updateScene();
+        }
+
+        function addLight() {
+            lights.push({ lx: 0, ly: 5, lz: 6, r: 255, g: 255, b: 255, intensity: 1.0 });
+            updateScene();
+        }
+
+        function removeLight(i) {
+            lights.splice(i, 1);
+            selectedLight = null;
+            updateScene();
+        }
+
+        // Camera controls
+        document.getElementById('cam-x').onchange = (e) => { camera.x = parseFloat(e.target.value); updateScene(); };
+        document.getElementById('cam-y').onchange = (e) => { camera.y = parseFloat(e.target.value); updateScene(); };
+        document.getElementById('cam-z').onchange = (e) => { camera.z = parseFloat(e.target.value); updateScene(); };
+
+        // Export functions
+        function toQ16(val) {
+            return Math.round(val * 65536);
+        }
+
+        function generateSceneLUT() {
+            function formatQ16(val) {
+                const q16 = toQ16(val);
+                return `${q16 >= 0 ? '' : '-'}32'sd${Math.abs(q16)}`;
+            }
+
+            let code = `// ─────────────────────────────────────────────────────────────────────────────
+// scene_lut.sv  —  Compile-time scene LUT (${spheres.length} sphere${spheres.length !== 1 ? 's' : ''} + ${lights.length} light${lights.length !== 1 ? 's' : ''})
+//
+// Generated by Scene LUT Editor
+// Matches c-implementation/scene.h exactly (Q16.16 values)
+//
+// Sphere encoding:
+//   - center (cx, cy, cz)
+//   - radius
+//   - color (r, g, b) as 8-bit integers (0-255)
+//   - reflectivity (Q16.16, 0.0 to 1.0)
+//
+// Light encoding:
+//   - position (lx, ly, lz)
+//   - color (r, g, b) as 8-bit integers (0-255)
+//   - intensity (Q16.16, typically 1.5 = 98304)
+// ─────────────────────────────────────────────────────────────────────────────
+
+\`timescale 1ns/1ps
+\`default_nettype none
+
+package scene_lut;
+    // Scene counts
+    localparam NUM_SPHERES = ${spheres.length};
+    localparam NUM_LIGHTS  = ${lights.length};
+
+    typedef struct packed {
+        logic signed [31:0] cx, cy, cz;
+        logic signed [31:0] radius;
+        logic [7:0] colorR, colorG, colorB;
+        logic signed [31:0] reflectivity;
+    } sphere_t;
+
+    typedef struct packed {
+        logic signed [31:0] lx, ly, lz;
+        logic [7:0] colorR, colorG, colorB;
+        logic signed [31:0] intensity;
+    } light_t;
+
+    // Table-driven scene data (update this section only)
+    localparam sphere_t SPHERES [0:NUM_SPHERES-1] = '{
+`;
+
+            spheres.forEach((s, i) => {
+                const cx = formatQ16(s.cx);
+                const cy = formatQ16(s.cy);
+                const cz = formatQ16(s.cz);
+                const radius = formatQ16(s.radius);
+                const refl = formatQ16(s.reflectivity);
+
+                code += `        '{ cx:${cx.padEnd(13)}, cy:${cy.padEnd(13)}, cz:${cz.padEnd(12)}, radius:${radius.padEnd(12)}, colorR:8'd${s.r.toString().padEnd(3)}, colorG:8'd${s.g.toString().padEnd(3)}, colorB:8'd${s.b.toString().padEnd(3)}, reflectivity:${refl.padEnd(12)} }${i < spheres.length - 1 ? ',' : ''}\n`;
+            });
+
+            code += `    };\n\n`;
+            code += `    localparam light_t LIGHTS [0:NUM_LIGHTS-1] = '{\n`;
+
+            lights.forEach((l, i) => {
+                const lx = formatQ16(l.lx);
+                const ly = formatQ16(l.ly);
+                const lz = formatQ16(l.lz);
+                const intensity = formatQ16(l.intensity);
+
+                code += `        '{ lx:${lx.padEnd(12)}, ly:${ly.padEnd(13)}, lz:${lz.padEnd(12)}, colorR:8'd${l.r.toString().padEnd(3)}, colorG:8'd${l.g.toString().padEnd(3)}, colorB:8'd${l.b.toString().padEnd(3)}, intensity:${intensity.padEnd(12)} }${i < lights.length - 1 ? ',' : ''}\n`;
+            });
+
+            code += `    };\n\n`;
+
+            code += `endpackage\n\n`;
+            code += `\`default_nettype wire\n`;
+
+            return code;
+        }
+
+        function exportSceneLUT() {
+            const code = generateSceneLUT();
+            const blob = new Blob([code], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'scene_lut.sv';
+            a.click();
+        }
+
+        function copyToClipboard() {
+            const code = generateSceneLUT();
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+
+        // Mouse controls for 3D view
+        let isRotating = false;
+        let isPanning = false;
+        let isTransformDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            
+            // Don't interfere with transform controls
+            if (isTransformDragging) return;
+            
+            if (e.button === 0) {
+                // Left click always rotates
+                isRotating = true;
+            } else if (e.button === 2) {
+                isPanning = true;
+            }
+
+            previousMousePosition = { x: e.offsetX, y: e.offsetY };
+        });
+
+        renderer.domElement.addEventListener('dblclick', (e) => {
+            e.preventDefault();
+            
+            mouse.x = (e.offsetX / renderer.domElement.clientWidth) * 2 - 1;
+            mouse.y = -(e.offsetY / renderer.domElement.clientHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, threeCamera);
+            const intersects = raycaster.intersectObjects([...sphereMeshes, ...lightMeshes]);
+
+            if (intersects.length > 0) {
+                // Double click on object - attach transform controls
+                const clickedObject = intersects[0].object;
+                const type = clickedObject.userData.type;
+                const index = clickedObject.userData.index;
+                
+                selectedSphere = type === 'sphere' ? index : null;
+                selectedLight = type === 'light' ? index : null;
+                
+                // Attach transform controls to clicked object
+                transformControls.attach(clickedObject);
+                
+                updateUI();
+            } else {
+                // Double click on empty space - deselect and detach controls
+                transformControls.detach();
+                selectedSphere = null;
+                selectedLight = null;
+                updateUI();
+            }
+        });
+
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            // Don't interfere with transform controls
+            if (isTransformDragging) return;
+            
+            if (isRotating) {
+                const deltaX = e.offsetX - previousMousePosition.x;
+                const deltaY = e.offsetY - previousMousePosition.y;
+
+                const rotationSpeed = 0.005;
+                
+                // Rotate around scene center
+                const offset = new THREE.Vector3();
+                offset.copy(threeCamera.position).sub(sceneCenter);
+                
+                // Horizontal rotation (around Y axis)
+                const quaternionY = new THREE.Quaternion();
+                quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -deltaX * rotationSpeed);
+                offset.applyQuaternion(quaternionY);
+                
+                // Vertical rotation (around right axis)
+                const right = new THREE.Vector3();
+                right.crossVectors(new THREE.Vector3(0, 1, 0), offset).normalize();
+                const quaternionX = new THREE.Quaternion();
+                quaternionX.setFromAxisAngle(right, -deltaY * rotationSpeed);
+                offset.applyQuaternion(quaternionX);
+                
+                threeCamera.position.copy(sceneCenter).add(offset);
+                threeCamera.lookAt(sceneCenter);
+            } else if (isPanning) {
+                const deltaX = e.offsetX - previousMousePosition.x;
+                const deltaY = e.offsetY - previousMousePosition.y;
+
+                const panSpeed = 0.01;
+                const right = new THREE.Vector3();
+                right.setFromMatrixColumn(threeCamera.matrix, 0);
+                right.multiplyScalar(-deltaX * panSpeed);
+                
+                const up = new THREE.Vector3();
+                up.setFromMatrixColumn(threeCamera.matrix, 1);
+                up.multiplyScalar(deltaY * panSpeed);
+
+                threeCamera.position.add(right).add(up);
+            }
+
+            previousMousePosition = { x: e.offsetX, y: e.offsetY };
+        });
+
+        renderer.domElement.addEventListener('mouseup', () => {
+            isRotating = false;
+            isPanning = false;
+        });
+
+        renderer.domElement.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.5;
+            const direction = new THREE.Vector3();
+            direction.subVectors(sceneCenter, threeCamera.position).normalize();
+            threeCamera.position.add(direction.multiplyScalar(e.deltaY > 0 ? -zoomSpeed : zoomSpeed));
+        });
+
+        renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // Render loop
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, threeCamera);
+        }
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            const width = viewport.clientWidth;
+            const height = viewport.clientHeight;
+            renderer.setSize(width, height);
+            threeCamera.aspect = width / height;
+            threeCamera.updateProjectionMatrix();
+        });
+
+        // Initialize
+        updateScene();
+        animate();
+    </script>
+</body>
+</html>

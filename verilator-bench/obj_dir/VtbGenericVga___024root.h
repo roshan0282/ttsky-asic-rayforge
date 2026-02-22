@@ -30,6 +30,7 @@ class alignas(VL_CACHE_LINE_BYTES) VtbGenericVga___024root final : public Verila
         CData/*0:0*/ tbGenericVga__DOT__hSyncReg;
         CData/*0:0*/ tbGenericVga__DOT__vSyncReg;
         CData/*0:0*/ tbGenericVga__DOT__visibleReg;
+        CData/*0:0*/ tbGenericVga__DOT__dut__DOT__output_valid;
         CData/*7:0*/ tbGenericVga__DOT__dut__DOT__final_r_comb;
         CData/*7:0*/ tbGenericVga__DOT__dut__DOT__final_g_comb;
         CData/*7:0*/ tbGenericVga__DOT__dut__DOT__final_b_comb;
@@ -82,13 +83,16 @@ class alignas(VL_CACHE_LINE_BYTES) VtbGenericVga___024root final : public Verila
         IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__proj_y;
         IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__proj_z;
         IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__refl_raw_x;
-        IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__refl_raw_y;
     };
     struct {
+        IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__refl_raw_y;
         IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__refl_raw_z;
         IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__eps_nx;
         IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__eps_ny;
         IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__eps_nz;
+        IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__accum_r_i;
+        IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__accum_g_i;
+        IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__accum_b_i;
         IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__shade_r_i;
         IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__shade_g_i;
         IData/*31:0*/ tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__shade_b_i;
@@ -145,12 +149,12 @@ class alignas(VL_CACHE_LINE_BYTES) VtbGenericVga___024root final : public Verila
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__7__ax;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__7__ay;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__7__az;
+    };
+    struct {
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__7__bx;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__7__by;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__7__bz;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__8__Vfuncout;
-    };
-    struct {
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__8__ax;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__8__ay;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__8__az;
@@ -211,12 +215,12 @@ class alignas(VL_CACHE_LINE_BYTES) VtbGenericVga___024root final : public Verila
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_sqrt_fn__21__Vfuncout;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_sqrt_fn__21__a;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_sqrt_fn__21__result;
+    };
+    struct {
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__22__Vfuncout;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__22__a;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__22__b;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__22__quotient;
-    };
-    struct {
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__23__Vfuncout;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__23__a;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__23__b;
@@ -277,12 +281,12 @@ class alignas(VL_CACHE_LINE_BYTES) VtbGenericVga___024root final : public Verila
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__34__b;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__35__Vfuncout;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__35__a;
+    };
+    struct {
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__35__b;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__36__Vfuncout;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__36__a;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__36__b;
-    };
-    struct {
         IData/*31:0*/ __Vtask_tbGenericVga__DOT__dut__DOT__ray_sphere_task__37__ox;
         IData/*31:0*/ __Vtask_tbGenericVga__DOT__dut__DOT__ray_sphere_task__37__oy;
         IData/*31:0*/ __Vtask_tbGenericVga__DOT__dut__DOT__ray_sphere_task__37__oz;
@@ -343,12 +347,12 @@ class alignas(VL_CACHE_LINE_BYTES) VtbGenericVga___024root final : public Verila
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__43__b;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_sqrt_fn__44__Vfuncout;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_sqrt_fn__44__a;
+    };
+    struct {
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_sqrt_fn__44__result;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__45__Vfuncout;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__45__a;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__45__b;
-    };
-    struct {
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__45__quotient;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__46__Vfuncout;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_div_fn__46__a;
@@ -409,12 +413,12 @@ class alignas(VL_CACHE_LINE_BYTES) VtbGenericVga___024root final : public Verila
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__59__Vfuncout;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__59__a;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__59__b;
+    };
+    struct {
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__60__Vfuncout;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__60__a;
         IData/*31:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__60__b;
         IData/*31:0*/ __VactIterCount;
-    };
-    struct {
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_sqrt_fn__2__v;
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_sqrt_fn__2__rem;
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_sqrt_fn__2__r;
@@ -475,12 +479,12 @@ class alignas(VL_CACHE_LINE_BYTES) VtbGenericVga___024root final : public Verila
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__33__py;
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__33__pz;
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__34__full_prod;
+    };
+    struct {
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__34__rounded;
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__35__full_prod;
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__35__rounded;
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__36__full_prod;
-    };
-    struct {
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__36__rounded;
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__38__px;
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_dot3_fn__38__py;
@@ -528,14 +532,14 @@ class alignas(VL_CACHE_LINE_BYTES) VtbGenericVga___024root final : public Verila
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__59__rounded;
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__60__full_prod;
         QData/*63:0*/ __Vfunc_tbGenericVga__DOT__dut__DOT__q16_mul_fn__60__rounded;
-        VlUnpacked<IData/*31:0*/, 4> tbGenericVga__DOT__dut__DOT__cx_arr;
-        VlUnpacked<IData/*31:0*/, 4> tbGenericVga__DOT__dut__DOT__cy_arr;
-        VlUnpacked<IData/*31:0*/, 4> tbGenericVga__DOT__dut__DOT__cz_arr;
-        VlUnpacked<IData/*31:0*/, 4> tbGenericVga__DOT__dut__DOT__radius_arr;
-        VlUnpacked<CData/*7:0*/, 4> tbGenericVga__DOT__dut__DOT__colorR_arr;
-        VlUnpacked<CData/*7:0*/, 4> tbGenericVga__DOT__dut__DOT__colorG_arr;
-        VlUnpacked<CData/*7:0*/, 4> tbGenericVga__DOT__dut__DOT__colorB_arr;
-        VlUnpacked<IData/*31:0*/, 4> tbGenericVga__DOT__dut__DOT__refl_arr;
+        VlUnpacked<IData/*31:0*/, 11> tbGenericVga__DOT__dut__DOT__cx_arr;
+        VlUnpacked<IData/*31:0*/, 11> tbGenericVga__DOT__dut__DOT__cy_arr;
+        VlUnpacked<IData/*31:0*/, 11> tbGenericVga__DOT__dut__DOT__cz_arr;
+        VlUnpacked<IData/*31:0*/, 11> tbGenericVga__DOT__dut__DOT__radius_arr;
+        VlUnpacked<CData/*7:0*/, 11> tbGenericVga__DOT__dut__DOT__colorR_arr;
+        VlUnpacked<CData/*7:0*/, 11> tbGenericVga__DOT__dut__DOT__colorG_arr;
+        VlUnpacked<CData/*7:0*/, 11> tbGenericVga__DOT__dut__DOT__colorB_arr;
+        VlUnpacked<IData/*31:0*/, 11> tbGenericVga__DOT__dut__DOT__refl_arr;
     };
     VlTriggerVec<1> __VstlTriggered;
     VlTriggerVec<1> __VicoTriggered;

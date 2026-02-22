@@ -29,38 +29,94 @@ VL_ATTR_COLD void VtbGenericVga___024root___eval_initial__TOP(VtbGenericVga___02
     VtbGenericVga__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     auto& vlSelfRef = std::ref(*vlSelf).get();
     // Body
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[0U] = 0xfffe4000U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[1U] = 0x1c000U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[2U] = 0U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[3U] = 0x11aafU;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[0U] = 0U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[1U] = 0U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[2U] = 0xfffc0000U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[3U] = 0U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[0U] = 0xffff7e5eU;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[1U] = 0xfffeed2aU;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[2U] = 0xfffe9e13U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[3U] = 0xfffeb74cU;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[4U] = 0xffff3dd2U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[5U] = 0xffffe6ffU;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[6U] = 0xb0d6U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[7U] = 0U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[8U] = 0U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[9U] = 0U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cx_arr[0xaU] = 0U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[0U] = 0x836dU;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[1U] = 0x10f4eU;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[2U] = 0x1ba26U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[3U] = 0x27cd4U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[4U] = 0x31d39U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[5U] = 0x361e6U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[6U] = 0x30aeeU;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[7U] = 0xffff61f5U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[8U] = 0x5ccU;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[9U] = 0xfffeb474U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cy_arr[0xaU] = 0xfffd5d64U;
     vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[0U] = 0x60000U;
     vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[1U] = 0x60000U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[2U] = 0x68000U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[3U] = 0xb6297U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[0U] = 0x18000U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[1U] = 0x18000U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[2U] = 0x30000U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[3U] = 0x10000U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[0U] = 0xffU;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[1U] = 0x3cU;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[2U] = 0xdcU;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[3U] = 0x11U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[0U] = 0x50U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[1U] = 0xa0U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[2U] = 0xdcU;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[3U] = 0xffU;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[0U] = 0x3cU;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[1U] = 0xffU;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[2U] = 0xdcU;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[3U] = 0U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[0U] = 0xa666U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[1U] = 0xa666U;
-    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[2U] = 0x2666U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[2U] = 0x60000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[3U] = 0x60000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[4U] = 0x60000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[5U] = 0x60000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[6U] = 0x60000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[7U] = 0x60000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[8U] = 0x60000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[9U] = 0x60000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__cz_arr[0xaU] = 0x5e9b3U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[0U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[1U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[2U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[3U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[4U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[5U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[6U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[7U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[8U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[9U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__radius_arr[0xaU] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[0U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[1U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[2U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[3U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[4U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[5U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[6U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[7U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[8U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[9U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorR_arr[0xaU] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[0U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[1U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[2U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[3U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[4U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[5U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[6U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[7U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[8U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[9U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorG_arr[0xaU] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[0U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[1U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[2U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[3U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[4U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[5U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[6U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[7U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[8U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[9U] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__colorB_arr[0xaU] = 0x80U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[0U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[1U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[2U] = 0x8000U;
     vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[3U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[4U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[5U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[6U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[7U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[8U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[9U] = 0x8000U;
+    vlSelfRef.tbGenericVga__DOT__dut__DOT__refl_arr[0xaU] = 0x8000U;
 }
 
 VL_ATTR_COLD void VtbGenericVga___024root___eval_final(VtbGenericVga___024root* vlSelf) {
@@ -117,6 +173,7 @@ VL_ATTR_COLD void VtbGenericVga___024root___dump_triggers__stl(VtbGenericVga___0
 #endif  // VL_DEBUG
 
 VL_ATTR_COLD void VtbGenericVga___024root___stl_sequent__TOP__0(VtbGenericVga___024root* vlSelf);
+void VtbGenericVga___024root___nba_sequent__TOP__1(VtbGenericVga___024root* vlSelf);
 
 VL_ATTR_COLD void VtbGenericVga___024root___eval_stl(VtbGenericVga___024root* vlSelf) {
     VL_DEBUG_IF(VL_DBG_MSGF("+    VtbGenericVga___024root___eval_stl\n"); );
@@ -125,6 +182,7 @@ VL_ATTR_COLD void VtbGenericVga___024root___eval_stl(VtbGenericVga___024root* vl
     // Body
     if ((1ULL & vlSelfRef.__VstlTriggered.word(0U))) {
         VtbGenericVga___024root___stl_sequent__TOP__0(vlSelf);
+        VtbGenericVga___024root___nba_sequent__TOP__1(vlSelf);
     }
 }
 
@@ -211,28 +269,29 @@ VL_ATTR_COLD void VtbGenericVga___024root___ctor_var_reset(VtbGenericVga___024ro
     vlSelf->tbGenericVga__DOT__hSyncReg = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 7374664606162577954ull);
     vlSelf->tbGenericVga__DOT__vSyncReg = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 6939879676752794004ull);
     vlSelf->tbGenericVga__DOT__visibleReg = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 10713821438494026491ull);
-    for (int __Vi0 = 0; __Vi0 < 4; ++__Vi0) {
+    vlSelf->tbGenericVga__DOT__dut__DOT__output_valid = VL_SCOPED_RAND_RESET_I(1, __VscopeHash, 12402058196649506531ull);
+    for (int __Vi0 = 0; __Vi0 < 11; ++__Vi0) {
         vlSelf->tbGenericVga__DOT__dut__DOT__cx_arr[__Vi0] = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 7378292866638134318ull);
     }
-    for (int __Vi0 = 0; __Vi0 < 4; ++__Vi0) {
+    for (int __Vi0 = 0; __Vi0 < 11; ++__Vi0) {
         vlSelf->tbGenericVga__DOT__dut__DOT__cy_arr[__Vi0] = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 11830591611403194169ull);
     }
-    for (int __Vi0 = 0; __Vi0 < 4; ++__Vi0) {
+    for (int __Vi0 = 0; __Vi0 < 11; ++__Vi0) {
         vlSelf->tbGenericVga__DOT__dut__DOT__cz_arr[__Vi0] = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 16392725658098724284ull);
     }
-    for (int __Vi0 = 0; __Vi0 < 4; ++__Vi0) {
+    for (int __Vi0 = 0; __Vi0 < 11; ++__Vi0) {
         vlSelf->tbGenericVga__DOT__dut__DOT__radius_arr[__Vi0] = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 12912137356397226938ull);
     }
-    for (int __Vi0 = 0; __Vi0 < 4; ++__Vi0) {
+    for (int __Vi0 = 0; __Vi0 < 11; ++__Vi0) {
         vlSelf->tbGenericVga__DOT__dut__DOT__colorR_arr[__Vi0] = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 10276338491743566799ull);
     }
-    for (int __Vi0 = 0; __Vi0 < 4; ++__Vi0) {
+    for (int __Vi0 = 0; __Vi0 < 11; ++__Vi0) {
         vlSelf->tbGenericVga__DOT__dut__DOT__colorG_arr[__Vi0] = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 6850422849485968197ull);
     }
-    for (int __Vi0 = 0; __Vi0 < 4; ++__Vi0) {
+    for (int __Vi0 = 0; __Vi0 < 11; ++__Vi0) {
         vlSelf->tbGenericVga__DOT__dut__DOT__colorB_arr[__Vi0] = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 3292532880555991566ull);
     }
-    for (int __Vi0 = 0; __Vi0 < 4; ++__Vi0) {
+    for (int __Vi0 = 0; __Vi0 < 11; ++__Vi0) {
         vlSelf->tbGenericVga__DOT__dut__DOT__refl_arr[__Vi0] = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 5656786532456858161ull);
     }
     vlSelf->tbGenericVga__DOT__dut__DOT__final_r_comb = VL_SCOPED_RAND_RESET_I(8, __VscopeHash, 1833156705910386366ull);
@@ -282,6 +341,9 @@ VL_ATTR_COLD void VtbGenericVga___024root___ctor_var_reset(VtbGenericVga___024ro
     vlSelf->tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__eps_nx = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 636438443967124254ull);
     vlSelf->tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__eps_ny = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 1553169909527730701ull);
     vlSelf->tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__eps_nz = VL_SCOPED_RAND_RESET_I(32, __VscopeHash, 4101138842106060919ull);
+    vlSelf->tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__accum_r_i = 0;
+    vlSelf->tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__accum_g_i = 0;
+    vlSelf->tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__accum_b_i = 0;
     vlSelf->tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__shade_r_i = 0;
     vlSelf->tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__shade_g_i = 0;
     vlSelf->tbGenericVga__DOT__dut__DOT__unnamedblk3__DOT__shade_b_i = 0;

@@ -1,313 +1,129 @@
-// Fixed Point Comparison
-module fixed_point_compare #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] a,
-    input  signed [WIDTH-1:0] b,
-    output gt, eq, lt
+// ─────────────────────────────────────────────────────────────────────────────
+// primitives_q16.sv  —  Q16.16 fixed-point arithmetic primitives
+//
+// All operations match c-implementation/fixed_point.h exactly for visual parity.
+// 32-bit signed Q16.16: 16 integer bits, 16 fractional bits
+// Range: [-32768.0, 32767.99998]  (1.0 = 65536)
+// ─────────────────────────────────────────────────────────────────────────────
+
+`timescale 1ns/1ps
+`default_nettype none
+
+/* verilator lint_off DECLFILENAME */
+
+// ── Addition ──────────────────────────────────────────────────────────────────
+module q16_add (
+    input  logic signed [31:0] a,
+    input  logic signed [31:0] b,
+    output logic signed [31:0] sum
 );
-    assign gt = (a > b);
-    assign eq = (a == b);
-    assign lt = (a < b);
+    assign sum = a + b;  // Direct addition, overflow wraps
 endmodule
 
-// Fixed Point Addition
-module fixed_point_add #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] a,
-    input  signed [WIDTH-1:0] b,
-    output signed [WIDTH-1:0] sum
-);
-    assign sum = a + b;
-endmodule
-
-// Fixed Point Subtraction
-module fixed_point_sub #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] a,
-    input  signed [WIDTH-1:0] b,
-    output signed [WIDTH-1:0] diff
+// ── Subtraction ───────────────────────────────────────────────────────────────
+module q16_sub (
+    input  logic signed [31:0] a,
+    input  logic signed [31:0] b,
+    output logic signed [31:0] diff
 );
     assign diff = a - b;
 endmodule
 
-// Fixed Point Multiplication
-module fixed_point_mul #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] a,
-    input  signed [WIDTH-1:0] b,
-    output reg signed [WIDTH-1:0] prod
+// ── Multiplication (with rounding) ────────────────────────────────────────────
+// (a * b + 32768) >> 16  — matches C++ exactly
+module q16_mul (
+    input  logic signed [31:0] a,
+    input  logic signed [31:0] b,
+    output logic signed [31:0] prod
 );
-    localparam signed [WIDTH-1:0] MAX_Q = {1'b0, {(WIDTH-1){1'b1}}};
-    localparam signed [WIDTH-1:0] MIN_Q = {1'b1, {(WIDTH-1){1'b0}}};
+    logic signed [63:0] full_prod;
+    logic signed [63:0] rounded;
+    
+    assign full_prod = a * b;
+    assign rounded   = full_prod + 64'sd32768;  // Round to nearest
+    assign prod      = rounded[47:16];           // Extract Q16.16 result
+endmodule
 
-    wire signed [2*WIDTH-1:0] fullProd  = a * b;
-    wire signed [2*WIDTH-1:0] roundBias = {{(2*WIDTH-5){1'b0}}, 4'b1000};
-    wire signed [2*WIDTH-1:0] rounded   = fullProd + roundBias;
-    wire signed [2*WIDTH-1:0] shifted   = rounded >>> 4;
-
-    always @(*) begin
-        if (shifted > $signed(MAX_Q)) begin
-            prod = MAX_Q;
-        end else if (shifted < $signed(MIN_Q)) begin
-            prod = MIN_Q;
+// ── Division ──────────────────────────────────────────────────────────────────
+// (a << 16) / b
+module q16_div (
+    input  logic signed [31:0] a,
+    input  logic signed [31:0] b,
+    output logic signed [31:0] quot
+);
+    logic signed [63:0] dividend_shifted;
+    logic signed [31:0] quotient;
+    
+    always_comb begin
+        // IMPORTANT: keep signed semantics for negative values.
+        // Using concatenation ({a,16'b0}) breaks sign-extension.
+        dividend_shifted = $signed(a) <<< 16;  // a << 16
+        quotient = 32'sd0;
+        
+        if (b == 32'sd0) begin
+            quotient = (a >= 32'sd0) ? 32'sd2147483647 : -32'sd2147483647;
         end else begin
-            prod = shifted[WIDTH-1:0];
+            quotient = dividend_shifted / b;
         end
     end
+    
+    assign quot = quotient;
 endmodule
 
-// Fixed Point Division
-module fixed_point_div #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] a,
-    input  signed [WIDTH-1:0] b,
-    output reg signed [WIDTH-1:0] quot,
-    output reg                errorFlag
+// ── Square Root (digit-by-digit binary) ───────────────────────────────────────
+// Matches C++ q84_sqrt exactly: 24 iterations on (a << 16)
+module q16_sqrt (
+    input  logic signed [31:0] a,
+    output logic signed [31:0] root
 );
-    localparam signed [WIDTH-1:0] MAX_Q = {1'b0, {(WIDTH-1){1'b1}}};
-    localparam signed [WIDTH-1:0] MIN_Q = {1'b1, {(WIDTH-1){1'b0}}};
-
-    reg signed [2*WIDTH-1:0] dividendShifted;
-    reg signed [2*WIDTH-1:0] quotientWide;
-
-    always @(*) begin
-        errorFlag = 1'b0;
-        quot = {WIDTH{1'b0}};
-        dividendShifted = a <<< 4;
-        quotientWide = {2*WIDTH{1'b0}};
-
-        if (b == 0) begin
-            errorFlag = 1'b1;
-            if (a >= 0) begin
-                quot = MAX_Q;
-            end else begin
-                quot = MIN_Q;
-            end
+    logic [63:0] v, rem, r;
+    logic [31:0] result;
+    
+    always_comb begin
+        // Initialize ALL variables to avoid latches
+        v = 64'd0;
+        rem = 64'd0;
+        r = 64'd0;
+        result = 32'sd0;
+        
+        if (a <= 32'sd0) begin
+            result = 32'sd0;
         end else begin
-            quotientWide = dividendShifted / b;
-            if (quotientWide > $signed(MAX_Q)) begin
-                quot = MAX_Q;
-            end else if (quotientWide < $signed(MIN_Q)) begin
-                quot = MIN_Q;
-            end else begin
-                quot = quotientWide[WIDTH-1:0];
-            end
-        end
-    end
-endmodule
-
-// Fixed Point Dot Product (3D)
-module fixed_point_dot #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] ax, ay, az,
-    input  signed [WIDTH-1:0] bx, by, bz,
-    output signed [WIDTH-1:0] dot
-);
-    assign dot = ((ax * bx) >>> 4) + ((ay * by) >>> 4) + ((az * bz) >>> 4); // Q8.4
-endmodule
-
-// Fixed Point Square Root (Q8.4, combinational integer sqrt)
-module fixed_point_sqrt #(
-    parameter WIDTH = 12
-    ) (
-    input  signed [WIDTH-1:0] a,
-    output reg signed [WIDTH-1:0] root
-);
-    integer i;
-    reg [31:0] val;
-    reg [31:0] rem;
-    reg [15:0] intRoot;
-    reg [17:0] trial;
-
-    always @(*) begin
-        val     = 32'b0;
-        intRoot = 16'b0;
-        rem     = 32'b0;
-        trial   = 18'b0;
-        if (a <= 0) begin
-            root = {WIDTH{1'b0}};
-        end else begin
-            val = $unsigned(a) <<< 4;
-            rem = 32'd0;
-            intRoot = 16'd0;
-
-            for (i = 0; i < 16; i = i + 1) begin
-                rem = {rem[29:0], val[31 - 2*i -: 2]};
-                trial = {intRoot, 2'b01};
-                if (rem >= trial) begin
-                    rem = rem - trial;
-                    intRoot = {intRoot[14:0], 1'b1};
+            v = {32'h0, a[31:0]} <<< 16;  // Scale up
+            rem = 64'd0;
+            r = 64'd0;
+            
+            // Process bits from MSB to LSB (bit 23 down to 0)
+            for (int i = 23; i >= 0; i = i - 1) begin
+                rem = (rem << 2) | ((v >>> (i * 2)) & 64'd3);
+                if (rem >= ((r << 2) | 64'd1)) begin
+                    rem = rem - ((r << 2) | 64'd1);
+                    r = (r << 1) | 64'd1;
                 end else begin
-                    intRoot = {intRoot[14:0], 1'b0};
+                    r = r << 1;
                 end
             end
-
-            if ($signed({1'b0, intRoot[10:0]}) > $signed({1'b0, {(WIDTH-1){1'b1}}})) begin
-                root = {1'b0, {(WIDTH-1){1'b1}}};
-            end else begin
-                root = $signed({1'b0, intRoot[10:0]});
-            end
+            
+            result = r[31:0];
         end
     end
+    
+    assign root = result;
 endmodule
 
-// Fixed Point Square Root Pipelined
-module fixed_point_sqrt_pipe #(
-        parameter WIDTH = 12,
-        parameter STAGES = 4
-    )(
-        input                     clk,
-        input  signed [WIDTH-1:0] a,
-        output reg signed [WIDTH-1:0] root,
-        output reg                valid
-    );
-
-    // Pipeline registers
-    reg signed [2*WIDTH-1:0] guessReg [0:STAGES];
-    reg signed [WIDTH-1:0]   valueReg [0:STAGES];
-    reg                      validReg [0:STAGES];
-
-    integer i;
-
-    always @(posedge clk) begin
-        // Stage 0: Input
-        validReg[0] <= 1'b1;
-        valueReg[0] <= a;
-        guessReg[0] <= (a == 0) ? 0 : 160; // 160 = 10 in Q8.4
-
-        // Stages 1-4
-        for (i = 1; i <= STAGES; i = i + 1) begin
-            validReg[i] <= validReg[i-1];
-            valueReg[i] <= valueReg[i-1];
-
-            if (validReg[i-1] && valueReg[i-1] != 0) begin
-                guessReg[i] <= (guessReg[i-1] +
-                            (valueReg[i-1] <<< 4) / guessReg[i-1]) >>> 1;
-            end else begin
-                guessReg[i] <= guessReg[i-1];
-            end
-        end
-
-        // Sqrt valid only once last stage has valid = 1
-        valid <= validReg[STAGES];
-        root <= guessReg[STAGES][WIDTH-1:0];
-    end
-
-endmodule
-
-// Fixed Point Negation
-module fixed_point_neg #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] a,
-    output signed [WIDTH-1:0] neg
+// ── Dot Product (3D) ──────────────────────────────────────────────────────────
+// ((ax*bx) >> 16) + ((ay*by) >> 16) + ((az*bz) >> 16)
+module q16_dot3 (
+    input  logic signed [31:0] ax, ay, az,
+    input  logic signed [31:0] bx, by, bz,
+    output logic signed [31:0] dot
 );
-    assign neg = -a;
+    logic signed [63:0] px, py, pz;
+    
+    assign px = (ax * bx) >>> 16;
+    assign py = (ay * by) >>> 16;
+    assign pz = (az * bz) >>> 16;
+    assign dot = px[31:0] + py[31:0] + pz[31:0];
 endmodule
 
-// Fixed Point Reciprocal (Q8.4)
-module fixed_point_recip #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] a,
-    output reg signed [WIDTH-1:0] recip
-);
-    localparam signed [WIDTH-1:0] MAX_Q = {1'b0, {(WIDTH-1){1'b1}}};
-    localparam signed [WIDTH-1:0] MIN_Q = {1'b1, {(WIDTH-1){1'b0}}};
-    reg signed [2*WIDTH-1:0] num;
-    reg signed [2*WIDTH-1:0] qWide;
-
-    always @(*) begin
-        num = (1 <<< 8); // 1.0 in Q8.4 shifted by frac bits again
-        if (a == 0) begin
-            if (a[WIDTH-1] == 1'b0) begin
-                recip = MAX_Q;
-            end else begin
-                recip = MIN_Q;
-            end
-        end else begin
-            qWide = num / a;
-            if (qWide > $signed(MAX_Q)) begin
-                recip = MAX_Q;
-            end else if (qWide < $signed(MIN_Q)) begin
-                recip = MIN_Q;
-            end else begin
-                recip = qWide[WIDTH-1:0];
-            end
-        end
-    end
-endmodule
-
-// Fixed Vector Subtraction (3D)
-module fixed_vec3_sub #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] ax, ay, az,
-    input  signed [WIDTH-1:0] bx, by, bz,
-    output signed [WIDTH-1:0] rx, ry, rz
-);
-    assign rx = ax - bx;
-    assign ry = ay - by;
-    assign rz = az - bz;
-endmodule
-
-// Fixed Vector Addition (3D)
-module fixed_vec3_add #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] ax, ay, az,
-    input  signed [WIDTH-1:0] bx, by, bz,
-    output signed [WIDTH-1:0] rx, ry, rz
-);
-    assign rx = ax + bx;
-    assign ry = ay + by;
-    assign rz = az + bz;
-endmodule
-
-// Fixed Scalar Multiplication (3D)
-module fixed_vec3_scalar_mul #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] s,
-    input  signed [WIDTH-1:0] x, y, z,
-    output signed [WIDTH-1:0] rx, ry, rz
-);
-    assign rx = (s * x) >>> 4; // Q8.4
-    assign ry = (s * y) >>> 4;
-    assign rz = (s * z) >>> 4;
-endmodule
-
-// Fixed Cross Product (3D)
-module fixed_vec3_cross #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] ax, ay, az,
-    input  signed [WIDTH-1:0] bx, by, bz,
-    output signed [WIDTH-1:0] rx, ry, rz
-);
-    assign rx = (ay * bz - az * by) >>> 4; // Q8.4
-    assign ry = (az * bx - ax * bz) >>> 4;
-    assign rz = (ax * by - ay * bx) >>> 4;
-endmodule
-
-// Fixed Vector Normalization (Q8.4)
-module fixed_vec3_normalize #(parameter WIDTH = 12) (
-    input  signed [WIDTH-1:0] x, y, z,
-    output signed [WIDTH-1:0] nx, ny, nz
-);
-    wire signed [WIDTH-1:0] mag2;
-    wire signed [WIDTH-1:0] mag;
-    wire signed [WIDTH-1:0] nxWire;
-    wire signed [WIDTH-1:0] nyWire;
-    wire signed [WIDTH-1:0] nzWire;
-    wire divErrX;
-    wire divErrY;
-    wire divErrZ;
-
-    fixed_point_dot #(.WIDTH(WIDTH)) u_mag2 (
-        .ax(x), .ay(y), .az(z),
-        .bx(x), .by(y), .bz(z),
-        .dot(mag2)
-    );
-
-    fixed_point_sqrt #(.WIDTH(WIDTH)) u_magSqrt (
-        .a(mag2),
-        .root(mag)
-    );
-
-    fixed_point_div #(.WIDTH(WIDTH)) u_divX (
-        .a(x), .b(mag), .quot(nxWire), .errorFlag(divErrX)
-    );
-    fixed_point_div #(.WIDTH(WIDTH)) u_divY (
-        .a(y), .b(mag), .quot(nyWire), .errorFlag(divErrY)
-    );
-    fixed_point_div #(.WIDTH(WIDTH)) u_divZ (
-        .a(z), .b(mag), .quot(nzWire), .errorFlag(divErrZ)
-    );
-
-    assign nx = (mag == 0) ? 0 : nxWire;
-    assign ny = (mag == 0) ? 0 : nyWire;
-    assign nz = (mag == 0) ? 0 : nzWire;
-endmodule
+`default_nettype wire

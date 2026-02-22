@@ -14,6 +14,7 @@ raytracer_top tracer0(
     .rgb_r(red),
     .rgb_g(green),
     .rgb_b(blue)
+    .outputvalid()
 );
 
 assign out = red & green & blue;

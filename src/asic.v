@@ -13,7 +13,7 @@ raytracer_top tracer0(
     .pixel_valid(in[4]),
     .rgb_r(red),
     .rgb_g(green),
-    .rgb_b(blue)
+    .rgb_b(blue),
     .outputvalid()
 );
 

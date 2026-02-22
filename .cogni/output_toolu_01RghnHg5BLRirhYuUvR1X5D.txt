@@ -1,6 +1,0 @@
-=== Command: copy raycasting\font8x8.mem verilator-bench\font8x8.mem (2026-02-17T07:58:06.936Z) ===
-Exit Code: 0
-Output:
-
-=== End Output ===
-

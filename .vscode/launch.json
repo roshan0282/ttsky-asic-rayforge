@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/Roshan/Documents/ttsky-asic",
-      "program": "c:/Users/Roshan/Documents/ttsky-asic/build/Debug/outDebug",
+      "cwd": "c:/2w/ttsky-asic",
+      "program": "c:/2w/ttsky-asic/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

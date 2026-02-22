@@ -1,6 +1,0 @@
-=== Command: copy verilator-bench\font8x8.mem verilator-bench\obj_dir\font8x8.mem (2026-02-17T07:58:20.462Z) ===
-Exit Code: 0
-Output:
-
-=== End Output ===
-

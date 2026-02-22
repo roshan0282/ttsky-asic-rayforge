@@ -1,6 +1,0 @@
-=== Command: copy ps2-code\ps2KeyboardVerilator.v verilator-bench\tb\ps2KeyboardVerilator.v (2026-02-17T07:50:35.433Z) ===
-Exit Code: 0
-Output:
-
-=== End Output ===
-

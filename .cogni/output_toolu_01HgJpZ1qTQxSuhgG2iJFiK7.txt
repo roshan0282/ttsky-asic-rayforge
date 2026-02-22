@@ -1,6 +1,0 @@
-=== Command: copy ps2-code\ps2ClkDatVerilator.v verilator-bench\tb\ps2ClkDatVerilator.v (2026-02-17T07:50:42.432Z) ===
-Exit Code: 0
-Output:
-
-=== End Output ===
-

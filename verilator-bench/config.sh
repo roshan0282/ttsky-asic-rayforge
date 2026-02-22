@@ -1,13 +1,16 @@
 #!/bin/bash
-# verilator bench configuration for raygaming-text-test
-# edit these variables to point to your project
+# verilator-bench configuration for SDL VGA viewer
+# usage:
+#   cd /c/2w/ttsky-asic/verilator-bench
+#   bash run.sh clean
 
-# path to your verilog source folder
-export VERILATOR_SOURCE_FOLDER=/c/2w/ttsky-asic/implementation
+# verilog source directory (all dependent .sv/.v files are auto-included)
+export VERILATOR_SOURCE_FOLDER=/c/2w/ttsky-asic/proper-implementation
 
-# name of your top module (module name, not filename)
-export VERILATOR_TOP_MODULE=raytracer_top
+# top module that matches tb/tbGenericVga.v interface:
+#   clk, rst_n, pixel_x, pixel_y, pixel_valid, rgb_r, rgb_g, rgb_b
+export VERILATOR_TOP_MODULE=raytracer_simple
 
-# testbench to use (usually tb/tbGenericVga.v for core modules)
+# generic VGA testbench used by the SDL viewer
 export VERILATOR_TESTBENCH=tb/tbGenericVga.v
 

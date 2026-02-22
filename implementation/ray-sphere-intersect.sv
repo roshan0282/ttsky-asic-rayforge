@@ -20,17 +20,14 @@ module ray_sphere_intersect (
 logic signed [11:0] lx, ly, lz;
 logic signed [11:0] aQ;
 logic signed [11:0] halfB;
-logic signed [11:0] bQ;
 logic signed [11:0] l2;
 logic signed [11:0] r2;
 logic signed [11:0] cQ;
-logic signed [11:0] b2;
+logic signed [11:0] hb2;       // halfB * halfB  (was b2 = bQ*bQ)
 logic signed [11:0] ac;
-logic signed [11:0] fourAc;
-logic signed [11:0] disc;
+logic signed [11:0] disc;      // hb2 - ac       (was b2 - fourAc)
 logic signed [11:0] sqrtDisc;
-logic signed [11:0] negB;
-logic signed [11:0] twoA;
+logic signed [11:0] negHalfB;  // -halfB          (was negB = -bQ)
 logic signed [11:0] num0;
 logic signed [11:0] num1;
 logic signed [11:0] t0;
@@ -56,8 +53,6 @@ fixed_point_dot u_halfBDot (
     .dot(halfB)
 );
 
-assign bQ = halfB <<< 1;
-
 fixed_point_dot u_l2Dot (
     .ax(lx), .ay(ly), .az(lz),
     .bx(lx), .by(ly), .bz(lz),
@@ -72,44 +67,40 @@ fixed_point_sub u_cSub (
     .a(l2), .b(r2), .diff(cQ)
 );
 
-fixed_point_mul u_b2Mul (
-    .a(bQ), .b(bQ), .prod(b2)
+fixed_point_mul u_hb2Mul (
+    .a(halfB), .b(halfB), .prod(hb2)
 );
 
 fixed_point_mul u_acMul (
     .a(aQ), .b(cQ), .prod(ac)
 );
 
-assign fourAc = ac <<< 2;
-
 fixed_point_sub u_discSub (
-    .a(b2), .b(fourAc), .diff(disc)
+    .a(hb2), .b(ac), .diff(disc)
 );
 
 fixed_point_sqrt u_discSqrt (
     .a(disc), .root(sqrtDisc)
 );
 
-fixed_point_neg u_negB (
-    .a(bQ), .neg(negB)
+fixed_point_neg u_negHalfB (
+    .a(halfB), .neg(negHalfB)
 );
 
-assign twoA = aQ <<< 1;
-
 fixed_point_sub u_num0 (
-    .a(negB), .b(sqrtDisc), .diff(num0)
+    .a(negHalfB), .b(sqrtDisc), .diff(num0)
 );
 
 fixed_point_add u_num1 (
-    .a(negB), .b(sqrtDisc), .sum(num1)
+    .a(negHalfB), .b(sqrtDisc), .sum(num1)
 );
 
 fixed_point_div u_divT0 (
-    .a(num0), .b(twoA), .quot(t0), .errorFlag(divErr0)
+    .a(num0), .b(aQ), .quot(t0), .errorFlag(divErr0)
 );
 
 fixed_point_div u_divT1 (
-    .a(num1), .b(twoA), .quot(t1), .errorFlag(divErr1)
+    .a(num1), .b(aQ), .quot(t1), .errorFlag(divErr1)
 );
 
 always_comb begin

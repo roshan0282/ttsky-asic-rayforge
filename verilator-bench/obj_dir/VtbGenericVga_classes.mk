@@ -34,6 +34,8 @@ VM_CLASSES_SLOW += \
   VtbGenericVga___024root__Slow \
   VtbGenericVga___024root__DepSet_ha4ba80f1__0__Slow \
   VtbGenericVga___024root__DepSet_hb949ed96__0__Slow \
+  VtbGenericVga___024unit__Slow \
+  VtbGenericVga___024unit__DepSet_he6aebcb2__0__Slow \
 
 # Generated support classes, fast-path, compile with highest optimization
 VM_SUPPORT_FAST += \

@@ -1,23 +1,8 @@
-// Minimal clean validation scene — 1 sphere, 1 light, no reflectivity.
-// Eliminates the alternating red/blue ring artifact caused by two spheres
-// having similar depths and t-comparison flipping between them.
-//
-// World coordinate scale: 1.0 world unit = Q8.4 value 16.
-//
-// Sphere: centered on camera axis at z=4.0, radius=1.5.
-//   cz=64 (4.0), radius=24 (1.5)  → fills ~40% of screen width.
-//   Warm white colour, zero reflectivity → pure diffuse shading.
-//
-// Light: at world (2, 3, 0) — above-right of camera, same z-plane.
-//   The light vector from any front-face hit point has a -Z component
-//   (hitP.z ≈ 40..48) so N·L is always positive on the lit hemisphere.
-//   lz=0 means (lightPos.z - hitP.z) < 0, which aligns with the
-//   outward normal on the front face (-Z).
-//
+// auto-generated scene LUT
 // regenerate with: python tools/scene-compiler.py --in tools/scene-sample.json --out implementation/scene-lut.svh
 
-localparam int SCENE_SPHERE_COUNT = 2;
-localparam int SCENE_LIGHT_COUNT = 2;
+localparam int SCENE_SPHERE_COUNT = 1;
+localparam int SCENE_LIGHT_COUNT = 1;
 
 function automatic void sceneSphereGet(
     input  logic [7:0] idx,
@@ -33,25 +18,25 @@ function automatic void sceneSphereGet(
 begin
     unique case (idx)
         8'd0: begin
-            cx = 12'sd0;
-            cy = 12'sd0;
+            cx = 12'sd32;
+            cy = 12'sd32;
             cz = 12'sd64;
-            radius = 12'sd4;
+            radius = 12'sd16;
             colorR = 8'd255;
             colorG = 8'd64;
             colorB = 8'd64;
             reflectivity = 12'sd4;
         end
-        8'd1: begin
-            cx = 12'sd24;
-            cy = -12'sd8;
-            cz = 12'sd96;
-            radius = 12'sd4;
-            colorR = 8'd64;
-            colorG = 8'd200;
-            colorB = 8'd255;
-            reflectivity = 12'sd2;
-        end
+        // 8'd1: begin
+        //     cx = 12'sd24;
+        //     cy = -12'sd8;
+        //     cz = 12'sd96;
+        //     radius = 12'sd12;
+        //     colorR = 8'd64;
+        //     colorG = 8'd200;
+        //     colorB = 8'd255;
+        //     reflectivity = 12'sd2;
+        // end
         default: begin
             cx = '0; cy = '0; cz = '0; radius = '0;
             colorR = '0; colorG = '0; colorB = '0;
@@ -82,15 +67,15 @@ begin
             colorB = 8'd220;
             intensity = 12'sd16;
         end
-        8'd1: begin
-            lx = -12'sd48;
-            ly = 12'sd32;
-            lz = 12'sd40;
-            colorR = 8'd180;
-            colorG = 8'd200;
-            colorB = 8'd255;
-            intensity = 12'sd8;
-        end
+        // 8'd1: begin
+        //     lx = -12'sd48;
+        //     ly = 12'sd32;
+        //     lz = 12'sd40;
+        //     colorR = 8'd180;
+        //     colorG = 8'd200;
+        //     colorB = 8'd255;
+        //     intensity = 12'sd8;
+        // end
         default: begin
             lx = '0; ly = '0; lz = '0;
             colorR = '0; colorG = '0; colorB = '0;

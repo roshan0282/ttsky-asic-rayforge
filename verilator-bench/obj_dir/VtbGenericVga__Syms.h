@@ -15,6 +15,7 @@
 
 // INCLUDE MODULE CLASSES
 #include "VtbGenericVga___024root.h"
+#include "VtbGenericVga___024unit.h"
 
 // SYMS CLASS (contains all model state)
 class alignas(VL_CACHE_LINE_BYTES)VtbGenericVga__Syms final : public VerilatedSyms {

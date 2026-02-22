@@ -205,9 +205,6 @@ logic signed [11:0] lightIntens [0:SCENE_LIGHT_COUNT-1];
 logic signed [11:0] lVecX  [0:SCENE_LIGHT_COUNT-1];
 logic signed [11:0] lVecY  [0:SCENE_LIGHT_COUNT-1];
 logic signed [11:0] lVecZ  [0:SCENE_LIGHT_COUNT-1];
-logic signed [11:0] lDirX  [0:SCENE_LIGHT_COUNT-1];  // normalized light direction
-logic signed [11:0] lDirY  [0:SCENE_LIGHT_COUNT-1];
-logic signed [11:0] lDirZ  [0:SCENE_LIGHT_COUNT-1];
 logic signed [11:0] ndotlQ [0:SCENE_LIGHT_COUNT-1];
 logic signed [11:0] difQ   [0:SCENE_LIGHT_COUNT-1];
 logic               ndotlGt[0:SCENE_LIGHT_COUNT-1];
@@ -230,21 +227,13 @@ end
 genvar lg;
 generate
     for (lg = 0; lg < SCENE_LIGHT_COUNT; lg++) begin : g_light
-        // raw light vector (lightPos - hitPoint)
         fixed_point_sub u_lvX (.a(lightPosX[lg]), .b(hitX), .diff(lVecX[lg]));
         fixed_point_sub u_lvY (.a(lightPosY[lg]), .b(hitY), .diff(lVecY[lg]));
         fixed_point_sub u_lvZ (.a(lightPosZ[lg]), .b(hitZ), .diff(lVecZ[lg]));
 
-        // normalize to unit direction — without this, N·L ∝ |lVec|·cos θ
-        // and the large magnitude saturates Q8.4, causing concentric rings.
-        fixed_vec3_normalize u_lnorm (
-            .x(lVecX[lg]), .y(lVecY[lg]), .z(lVecZ[lg]),
-            .nx(lDirX[lg]), .ny(lDirY[lg]), .nz(lDirZ[lg])
-        );
-
         fixed_point_dot u_ndotl (
             .ax(normalX),    .ay(normalY),    .az(normalZ),
-            .bx(lDirX[lg]), .by(lDirY[lg]), .bz(lDirZ[lg]),
+            .bx(lVecX[lg]), .by(lVecY[lg]), .bz(lVecZ[lg]),
             .dot(ndotlQ[lg])
         );
         fixed_point_compare u_cmp (

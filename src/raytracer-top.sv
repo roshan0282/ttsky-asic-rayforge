@@ -427,7 +427,7 @@ module raytracer_top (
                                 proj_x = q16_mul_fn(norm_x, two_ndotn);
                                 proj_y = q16_mul_fn(norm_y, two_ndotn);
                                 proj_z = q16_mul_fn(norm_z, two_ndotn);
-                                refl_raw_x;
+                                refl_raw_x = ray_dx - proj_x;
                                 refl_raw_y = ray_dy - proj_y;
                                 refl_raw_z = ray_dz - proj_z;
                                 normalize3_task(refl_raw_x, refl_raw_y, refl_raw_z, ray_dx, ray_dy, ray_dz);

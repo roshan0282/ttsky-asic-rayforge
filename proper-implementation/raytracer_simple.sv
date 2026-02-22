@@ -30,36 +30,65 @@ module raytracer_simple (
     output logic        output_valid
 );
 
-    localparam int NUM_SPHERES     = scene_lut::NUM_SPHERES;
-    localparam int NUM_LIGHTS      = scene_lut::NUM_LIGHTS;
+    localparam int MAX_SPHERES     = 4;
+    localparam int MAX_LIGHTS      = 2;
     localparam int MAX_BOUNCES     = 4;
     localparam int MAX_ITERATIONS  = 8;
-    localparam logic signed [31:0] Q16_ONE = 32'sd65536;
-    localparam logic signed [31:0] Q16_EPS = 32'sd655;     // ~0.01
+    localparam logic signed [31:0] Q16_ONE    = 32'sd65536;
+    localparam logic signed [31:0] Q16_EPS    = 32'sd655;
     localparam logic signed [31:0] BG_BLUE_Q8 = 32'sd32;
 
-    // ── Scene data ────────────────────────────────────────────────────────────
-    logic signed [31:0] cx_arr [0:NUM_SPHERES-1];
-    logic signed [31:0] cy_arr [0:NUM_SPHERES-1];
-    logic signed [31:0] cz_arr [0:NUM_SPHERES-1];
-    logic signed [31:0] radius_arr [0:NUM_SPHERES-1];
-    logic [7:0]  colorR_arr [0:NUM_SPHERES-1];
-    logic [7:0]  colorG_arr [0:NUM_SPHERES-1];
-    logic [7:0]  colorB_arr [0:NUM_SPHERES-1];
-    logic signed [31:0] refl_arr [0:NUM_SPHERES-1];
+    // ── Scene data (now driven by UART receiver instead of LUT) ──────────────
+    logic signed [31:0] cx_arr     [0:MAX_SPHERES-1];
+    logic signed [31:0] cy_arr     [0:MAX_SPHERES-1];
+    logic signed [31:0] cz_arr     [0:MAX_SPHERES-1];
+    logic signed [31:0] radius_arr [0:MAX_SPHERES-1];
+    logic        [7:0]  colorR_arr [0:MAX_SPHERES-1];
+    logic        [7:0]  colorG_arr [0:MAX_SPHERES-1];
+    logic        [7:0]  colorB_arr [0:MAX_SPHERES-1];
+    logic signed [31:0] refl_arr   [0:MAX_SPHERES-1];
 
-    always_comb begin
-        for (int i = 0; i < NUM_SPHERES; i++) begin
-            cx_arr[i] = scene_lut::SPHERES[i].cx;
-            cy_arr[i] = scene_lut::SPHERES[i].cy;
-            cz_arr[i] = scene_lut::SPHERES[i].cz;
-            radius_arr[i] = scene_lut::SPHERES[i].radius;
-            colorR_arr[i] = scene_lut::SPHERES[i].colorR;
-            colorG_arr[i] = scene_lut::SPHERES[i].colorG;
-            colorB_arr[i] = scene_lut::SPHERES[i].colorB;
-            refl_arr[i] = scene_lut::SPHERES[i].reflectivity;
-        end
-    end
+    logic signed [31:0] light_x_arr         [0:MAX_LIGHTS-1];
+    logic signed [31:0] light_y_arr         [0:MAX_LIGHTS-1];
+    logic signed [31:0] light_z_arr         [0:MAX_LIGHTS-1];
+    logic        [7:0]  light_colorR_arr    [0:MAX_LIGHTS-1];
+    logic        [7:0]  light_colorG_arr    [0:MAX_LIGHTS-1];
+    logic        [7:0]  light_colorB_arr    [0:MAX_LIGHTS-1];
+    logic signed [31:0] light_intensity_arr [0:MAX_LIGHTS-1];
+
+    logic [$clog2(MAX_SPHERES+1)-1:0] num_spheres;
+    logic [$clog2(MAX_LIGHTS+1)-1:0]  num_lights;
+    logic scene_ready;
+
+    // ── UART scene receiver ───────────────────────────────────────────────────
+    uart_scene_receiver #(
+        .MAX_SPHERES(MAX_SPHERES),
+        .MAX_LIGHTS (MAX_LIGHTS),
+        .CLK_FREQ   (CLK_FREQ),
+        .BAUD_RATE  (BAUD_RATE)
+    ) u_scene_rx (
+        .clk                (clk),
+        .resetn             (resetn),
+        .uartRx             (uartRx),
+        .cx_arr             (cx_arr),
+        .cy_arr             (cy_arr),
+        .cz_arr             (cz_arr),
+        .radius_arr         (radius_arr),
+        .colorR_arr         (colorR_arr),
+        .colorG_arr         (colorG_arr),
+        .colorB_arr         (colorB_arr),
+        .refl_arr           (refl_arr),
+        .light_x_arr        (light_x_arr),
+        .light_y_arr        (light_y_arr),
+        .light_z_arr        (light_z_arr),
+        .light_colorR_arr   (light_colorR_arr),
+        .light_colorG_arr   (light_colorG_arr),
+        .light_colorB_arr   (light_colorB_arr),
+        .light_intensity_arr(light_intensity_arr),
+        .num_spheres        (num_spheres),
+        .num_lights         (num_lights),
+        .scene_ready        (scene_ready)
+    );
 
     // ── Q16 helpers ───────────────────────────────────────────────────────────
     function automatic logic signed [31:0] q16_mul_fn(
@@ -333,14 +362,13 @@ module raytracer_simple (
                     break;
                 end
 
-                light_x = scene_lut::LIGHTS[li].lx;
-                light_y = scene_lut::LIGHTS[li].ly;
-                light_z = scene_lut::LIGHTS[li].lz;
-                light_colorR = scene_lut::LIGHTS[li].colorR;
-                light_colorG = scene_lut::LIGHTS[li].colorG;
-                light_colorB = scene_lut::LIGHTS[li].colorB;
-                light_intensity = scene_lut::LIGHTS[li].intensity;
-
+                light_x         = light_x_arr[li];
+                light_y         = light_y_arr[li];
+                light_z         = light_z_arr[li];
+                light_colorR    = light_colorR_arr[li];
+                light_colorG    = light_colorG_arr[li];
+                light_colorB    = light_colorB_arr[li];
+                light_intensity = light_intensity_arr[li];
                 to_light_x = light_x - hit_x;
                 to_light_y = light_y - hit_y;
                 to_light_z = light_z - hit_z;

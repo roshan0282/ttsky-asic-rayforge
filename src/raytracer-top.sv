@@ -14,7 +14,38 @@
 `timescale 1ns/1ps
 `default_nettype none
 
-import scene_lut::*;
+package scene_lut;
+    // Scene counts
+    localparam NUM_SPHERES = 4;
+    localparam NUM_LIGHTS  = 2;
+
+    typedef struct packed {
+        logic signed [31:0] cx, cy, cz;
+        logic signed [31:0] radius;
+        logic [7:0] colorR, colorG, colorB;
+        logic signed [31:0] reflectivity;
+    } sphere_t;
+
+    typedef struct packed {
+        logic signed [31:0] lx, ly, lz;
+        logic [7:0] colorR, colorG, colorB;
+        logic signed [31:0] intensity;
+    } light_t;
+
+    // Table-driven scene data (update this section only)
+    localparam sphere_t SPHERES [0:NUM_SPHERES-1] = '{
+        '{ cx:-32'sd114688 , cy:32'sd0       , cz:32'sd393216 , radius:32'sd98304  , colorR:8'd255, colorG:8'd80 , colorB:8'd60 , reflectivity:32'sd42598   },
+        '{ cx:32'sd114688  , cy:32'sd0       , cz:32'sd393216 , radius:32'sd98304  , colorR:8'd60 , colorG:8'd160, colorB:8'd255, reflectivity:32'sd42598   },
+        '{ cx:32'sd0       , cy:-32'sd262144 , cz:32'sd425984 , radius:32'sd196608 , colorR:8'd220, colorG:8'd220, colorB:8'd220, reflectivity:32'sd9830    },
+        '{ cx:32'sd72367   , cy:32'sd0       , cz:32'sd746135 , radius:32'sd65536  , colorR:8'd17 , colorG:8'd255, colorB:8'd0  , reflectivity:32'sd32768   }
+    };
+
+    localparam light_t LIGHTS [0:NUM_LIGHTS-1] = '{
+        '{ lx:32'sd0      , ly:32'sd16079   , lz:32'sd556734 , colorR:8'd255, colorG:8'd153, colorB:8'd0  , intensity:32'sd98304   },
+        '{ lx:32'sd0      , ly:32'sd191576  , lz:32'sd239270 , colorR:8'd238, colorG:8'd255, colorB:8'd0  , intensity:32'sd65536   }
+    };
+
+endpackage
 
 module raytracer_top (
     input  logic        clk,

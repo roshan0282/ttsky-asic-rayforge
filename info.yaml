@@ -21,7 +21,6 @@ project:
     - "primitives.v"
     - "ray-sphere-intersect.sv"
     - "raytracer-top.sv"
-    - "scene_lut.sv"
     - "tt_um_asic.v"
     - "vec3_q16.sv"
 

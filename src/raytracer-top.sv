@@ -265,6 +265,8 @@ module raytracer_top (
         int rMix_i;
         int difQInt_i;
 
+        logic done_bouncing;
+
         centered_x = $signed({1'b0, pixel_x}) - 32'sd320;
         centered_y = 32'sd240 - $signed({1'b0, pixel_y});
         raw_dx = centered_x <<< 14;
@@ -281,160 +283,166 @@ module raytracer_top (
         accum_b_i = 0;
         weight_i = 16; // Q4.4
         iter_i = 0;
+        done_bouncing = 1'b0;
 
         for (int bounce = 0; bounce < MAX_BOUNCES; bounce++) begin
-            if (iter_i >= MAX_ITERATIONS) begin
-                break;
-            end
-
-            iter_i = iter_i + 1;
-
-            nearest_hit = 1'b0;
-            nearest_t = 32'sd2147483647;
-            nearest_idx = -1;
-
-            for (int si = 0; si < NUM_SPHERES; si++) begin
-                ray_sphere_task(ray_ox, ray_oy, ray_oz,
-                                ray_dx, ray_dy, ray_dz,
-                                cx_arr[si], cy_arr[si], cz_arr[si], radius_arr[si],
-                                hit_tmp, t_tmp);
-                if (hit_tmp && t_tmp > 32'sd0) begin
-                    if (!nearest_hit || t_tmp < nearest_t) begin
-                        nearest_hit = 1'b1;
-                        nearest_t = t_tmp;
-                        nearest_idx = si;
-                    end
-                end
-            end
-
-            if (!nearest_hit) begin
-                accum_r_i = accum_r_i + ((0 * weight_i) >>> 4);
-                accum_g_i = accum_g_i + ((0 * weight_i) >>> 4);
-                accum_b_i = accum_b_i + ((BG_BLUE_Q8 * weight_i) >>> 4);
-                break;
-            end
-
-            hit_x = ray_ox + q16_mul_fn(nearest_t, ray_dx);
-            hit_y = ray_oy + q16_mul_fn(nearest_t, ray_dy);
-            hit_z = ray_oz + q16_mul_fn(nearest_t, ray_dz);
-
-            norm_raw_x = hit_x - cx_arr[nearest_idx];
-            norm_raw_y = hit_y - cy_arr[nearest_idx];
-            norm_raw_z = hit_z - cz_arr[nearest_idx];
-            normalize3_task(norm_raw_x, norm_raw_y, norm_raw_z, norm_x, norm_y, norm_z);
-
-            shade_r_i = int'(colorR_arr[nearest_idx]) >>> 3;
-            shade_g_i = int'(colorG_arr[nearest_idx]) >>> 3;
-            shade_b_i = int'(colorB_arr[nearest_idx]) >>> 3;
-
-            for (int li = 0; li < NUM_LIGHTS; li++) begin
+            if (!done_bouncing) begin
                 if (iter_i >= MAX_ITERATIONS) begin
-                    break;
+                    done_bouncing = 1'b1;
                 end
 
-                light_x = 32'b0;
-                light_y = 32'b0;
-                light_z = 32'b0;
-                light_colorR = 8'b0;
-                light_colorG = 8'b0;
-                light_colorB = 8'b0;
-                light_intensity = 32'b0;
+                if (!done_bouncing) begin
+                    iter_i = iter_i + 1;
 
-                to_light_x = light_x - hit_x;
-                to_light_y = light_y - hit_y;
-                to_light_z = light_z - hit_z;
-                dist_to_light = q16_sqrt_fn(q16_dot3_fn(to_light_x, to_light_y, to_light_z,
-                                                        to_light_x, to_light_y, to_light_z));
-                normalize3_task(to_light_x, to_light_y, to_light_z, ldir_x, ldir_y, ldir_z);
-                ndotl = q16_dot3_fn(norm_x, norm_y, norm_z, ldir_x, ldir_y, ldir_z);
+                    nearest_hit = 1'b0;
+                    nearest_t = 32'sd2147483647;
+                    nearest_idx = -1;
 
-                in_shadow = 1'b0;
-                if (ndotl > 32'sd0) begin
-                    eps_nx = q16_mul_fn(norm_x, Q16_EPS);
-                    eps_ny = q16_mul_fn(norm_y, Q16_EPS);
-                    eps_nz = q16_mul_fn(norm_z, Q16_EPS);
-
-                    shad_ox = hit_x + eps_nx;
-                    shad_oy = hit_y + eps_ny;
-                    shad_oz = hit_z + eps_nz;
-
-                    for (int si2 = 0; si2 < NUM_SPHERES; si2++) begin
-                        if (iter_i >= MAX_ITERATIONS) begin
-                            break;
-                        end
-
-                        iter_i = iter_i + 1;
-
-                        ray_sphere_task(shad_ox, shad_oy, shad_oz,
-                                        ldir_x, ldir_y, ldir_z,
-                                        cx_arr[si2], cy_arr[si2], cz_arr[si2], radius_arr[si2],
+                    for (int si = 0; si < NUM_SPHERES; si++) begin
+                        ray_sphere_task(ray_ox, ray_oy, ray_oz,
+                                        ray_dx, ray_dy, ray_dz,
+                                        cx_arr[si], cy_arr[si], cz_arr[si], radius_arr[si],
                                         hit_tmp, t_tmp);
-
-                        if (hit_tmp && t_tmp > 32'sd0 && t_tmp < dist_to_light) begin
-                            in_shadow = 1'b1;
-                            break;
+                        if (hit_tmp && t_tmp > 32'sd0) begin
+                            if (!nearest_hit || t_tmp < nearest_t) begin
+                                nearest_hit = 1'b1;
+                                nearest_t = t_tmp;
+                                nearest_idx = si;
+                            end
                         end
                     end
 
-                    if (!in_shadow) begin
-                        difQInt_i = (q16_mul_fn(ndotl, light_intensity)) >>> 12;
-                        if (difQInt_i > 16) begin
-                            difQInt_i = 16;
-                        end
-                        if (difQInt_i < 0) begin
-                            difQInt_i = 0;
+                    if (!nearest_hit) begin
+                        accum_r_i = accum_r_i + ((0 * weight_i) >>> 4);
+                        accum_g_i = accum_g_i + ((0 * weight_i) >>> 4);
+                        accum_b_i = accum_b_i + ((BG_BLUE_Q8 * weight_i) >>> 4);
+                        done_bouncing = 1'b1;
+                    end
+
+                    if (!done_bouncing) begin
+                        hit_x = ray_ox + q16_mul_fn(nearest_t, ray_dx);
+                        hit_y = ray_oy + q16_mul_fn(nearest_t, ray_dy);
+                        hit_z = ray_oz + q16_mul_fn(nearest_t, ray_dz);
+
+                        norm_raw_x = hit_x - cx_arr[nearest_idx];
+                        norm_raw_y = hit_y - cy_arr[nearest_idx];
+                        norm_raw_z = hit_z - cz_arr[nearest_idx];
+                        normalize3_task(norm_raw_x, norm_raw_y, norm_raw_z, norm_x, norm_y, norm_z);
+
+                        shade_r_i = int'(colorR_arr[nearest_idx]) >>> 3;
+                        shade_g_i = int'(colorG_arr[nearest_idx]) >>> 3;
+                        shade_b_i = int'(colorB_arr[nearest_idx]) >>> 3;
+
+                        for (int li = 0; li < NUM_LIGHTS; li++) begin
+                            if (iter_i < MAX_ITERATIONS) begin
+                                light_x = 32'b0;
+                                light_y = 32'b0;
+                                light_z = 32'b0;
+                                light_colorR = 8'b0;
+                                light_colorG = 8'b0;
+                                light_colorB = 8'b0;
+                                light_intensity = 32'b0;
+
+                                to_light_x = light_x - hit_x;
+                                to_light_y = light_y - hit_y;
+                                to_light_z = light_z - hit_z;
+                                dist_to_light = q16_sqrt_fn(q16_dot3_fn(to_light_x, to_light_y, to_light_z,
+                                                                        to_light_x, to_light_y, to_light_z));
+                                normalize3_task(to_light_x, to_light_y, to_light_z, ldir_x, ldir_y, ldir_z);
+                                ndotl = q16_dot3_fn(norm_x, norm_y, norm_z, ldir_x, ldir_y, ldir_z);
+
+                                in_shadow = 1'b0;
+                                if (ndotl > 32'sd0) begin
+                                    eps_nx = q16_mul_fn(norm_x, Q16_EPS);
+                                    eps_ny = q16_mul_fn(norm_y, Q16_EPS);
+                                    eps_nz = q16_mul_fn(norm_z, Q16_EPS);
+
+                                    shad_ox = hit_x + eps_nx;
+                                    shad_oy = hit_y + eps_ny;
+                                    shad_oz = hit_z + eps_nz;
+
+                                    for (int si2 = 0; si2 < NUM_SPHERES; si2++) begin
+                                        if (!in_shadow && iter_i < MAX_ITERATIONS) begin
+                                            iter_i = iter_i + 1;
+
+                                            ray_sphere_task(shad_ox, shad_oy, shad_oz,
+                                                            ldir_x, ldir_y, ldir_z,
+                                                            cx_arr[si2], cy_arr[si2], cz_arr[si2], radius_arr[si2],
+                                                            hit_tmp, t_tmp);
+
+                                            if (hit_tmp && t_tmp > 32'sd0 && t_tmp < dist_to_light) begin
+                                                in_shadow = 1'b1;
+                                            end
+                                        end
+                                    end
+
+                                    if (!in_shadow) begin
+                                        difQInt_i = (q16_mul_fn(ndotl, light_intensity)) >>> 12;
+                                        if (difQInt_i > 16) begin
+                                            difQInt_i = 16;
+                                        end
+                                        if (difQInt_i < 0) begin
+                                            difQInt_i = 0;
+                                        end
+
+                                        shade_r_i = shade_r_i
+                                                  + ((((int'(colorR_arr[nearest_idx]) * int'(light_colorR)) >>> 8)
+                                                       * difQInt_i) >>> 4);
+                                        shade_g_i = shade_g_i
+                                                  + ((((int'(colorG_arr[nearest_idx]) * int'(light_colorG)) >>> 8)
+                                                       * difQInt_i) >>> 4);
+                                        shade_b_i = shade_b_i
+                                                  + ((((int'(colorB_arr[nearest_idx]) * int'(light_colorB)) >>> 8)
+                                                       * difQInt_i) >>> 4);
+                                    end
+                                end
+                            end
                         end
 
-                        shade_r_i = shade_r_i
-                                  + ((((int'(colorR_arr[nearest_idx]) * int'(light_colorR)) >>> 8)
-                                       * difQInt_i) >>> 4);
-                        shade_g_i = shade_g_i
-                                  + ((((int'(colorG_arr[nearest_idx]) * int'(light_colorG)) >>> 8)
-                                       * difQInt_i) >>> 4);
-                        shade_b_i = shade_b_i
-                                  + ((((int'(colorB_arr[nearest_idx]) * int'(light_colorB)) >>> 8)
-                                       * difQInt_i) >>> 4);
+                        accum_r_i = accum_r_i + ((shade_r_i * weight_i) >>> 4);
+                        accum_g_i = accum_g_i + ((shade_g_i * weight_i) >>> 4);
+                        accum_b_i = accum_b_i + ((shade_b_i * weight_i) >>> 4);
+
+                        rMix_i = int'(refl_arr[nearest_idx]) >>> 12;
+                        if (rMix_i < 0) begin
+                            rMix_i = 0;
+                        end
+                        if (rMix_i > 16) begin
+                            rMix_i = 16;
+                        end
+
+                        if (rMix_i == 0 || iter_i >= MAX_ITERATIONS) begin
+                            done_bouncing = 1'b1;
+                        end
+
+                        if (!done_bouncing) begin
+                            weight_i = (weight_i * rMix_i) >>> 4;
+                            if (weight_i < 1) begin
+                                done_bouncing = 1'b1;
+                            end
+
+                            if (!done_bouncing) begin
+                                ndotn = q16_dot3_fn(ray_dx, ray_dy, ray_dz, norm_x, norm_y, norm_z);
+                                two_ndotn = ndotn + ndotn;
+                                proj_x = q16_mul_fn(norm_x, two_ndotn);
+                                proj_y = q16_mul_fn(norm_y, two_ndotn);
+                                proj_z = q16_mul_fn(norm_z, two_ndotn);
+                                refl_raw_x;
+                                refl_raw_y = ray_dy - proj_y;
+                                refl_raw_z = ray_dz - proj_z;
+                                normalize3_task(refl_raw_x, refl_raw_y, refl_raw_z, ray_dx, ray_dy, ray_dz);
+
+                                eps_nx = q16_mul_fn(norm_x, Q16_EPS);
+                                eps_ny = q16_mul_fn(norm_y, Q16_EPS);
+                                eps_nz = q16_mul_fn(norm_z, Q16_EPS);
+                                ray_ox = hit_x + eps_nx;
+                                ray_oy = hit_y + eps_ny;
+                                ray_oz = hit_z + eps_nz;
+                            end
+                        end
                     end
                 end
             end
-
-            accum_r_i = accum_r_i + ((shade_r_i * weight_i) >>> 4);
-            accum_g_i = accum_g_i + ((shade_g_i * weight_i) >>> 4);
-            accum_b_i = accum_b_i + ((shade_b_i * weight_i) >>> 4);
-
-            rMix_i = int'(refl_arr[nearest_idx]) >>> 12;
-            if (rMix_i < 0) begin
-                rMix_i = 0;
-            end
-            if (rMix_i > 16) begin
-                rMix_i = 16;
-            end
-
-            if (rMix_i == 0 || iter_i >= MAX_ITERATIONS) begin
-                break;
-            end
-
-            weight_i = (weight_i * rMix_i) >>> 4;
-            if (weight_i < 1) begin
-                break;
-            end
-
-            ndotn = q16_dot3_fn(ray_dx, ray_dy, ray_dz, norm_x, norm_y, norm_z);
-            two_ndotn = ndotn + ndotn;
-            proj_x = q16_mul_fn(norm_x, two_ndotn);
-            proj_y = q16_mul_fn(norm_y, two_ndotn);
-            proj_z = q16_mul_fn(norm_z, two_ndotn);
-            refl_raw_x = ray_dx - proj_x;
-            refl_raw_y = ray_dy - proj_y;
-            refl_raw_z = ray_dz - proj_z;
-            normalize3_task(refl_raw_x, refl_raw_y, refl_raw_z, ray_dx, ray_dy, ray_dz);
-
-            eps_nx = q16_mul_fn(norm_x, Q16_EPS);
-            eps_ny = q16_mul_fn(norm_y, Q16_EPS);
-            eps_nz = q16_mul_fn(norm_z, Q16_EPS);
-            ray_ox = hit_x + eps_nx;
-            ray_oy = hit_y + eps_ny;
-            ray_oz = hit_z + eps_nz;
         end
 
         final_r_comb = clamp_u8_fn(accum_r_i);

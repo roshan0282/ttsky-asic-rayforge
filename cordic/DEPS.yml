@@ -1,0 +1,13 @@
+# CORDIC Vectoring Module Dependencies
+
+# DUT only
+dut_vectoring:
+  deps:
+    - vectoring.sv
+
+# Testbench simulation
+sim_vectoring:
+  deps:
+    - vectoring.sv
+    - tb_vectoring.sv
+  top: tb_vectoring

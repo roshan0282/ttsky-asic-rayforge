@@ -4,7 +4,7 @@
 # defaults
 SIM ?= icarus
 FST ?= -fst # Use more efficient FST format
-TOPLEVEL_LANG ?= verilog
+TOPLEVEL_LANG ?= systemverilog
 SRC_DIR = $(PWD)/../src
 PROJECT_SOURCES = $(notdir $(wildcard $(SRC_DIR)/*.v)) \
                   $(notdir $(wildcard $(SRC_DIR)/*.sv))

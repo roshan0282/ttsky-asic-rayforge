@@ -14,7 +14,6 @@
 `timescale 1ns/1ps
 `default_nettype none
 
-//random 2
 module raytracer_top (
     input  logic        clk,
     input  logic        rst_n,
@@ -224,22 +223,19 @@ module raytracer_top (
     logic [7:0] final_b_comb;
 
     // ── Full per-pixel trace (combinational, based on current pixel) ─────────
+    always_comb begin
         logic signed [31:0] ray_ox, ray_oy, ray_oz;
         logic signed [31:0] ray_dx, ray_dy, ray_dz;
         logic signed [31:0] raw_dx, raw_dy, raw_dz;
         logic signed [31:0] centered_x, centered_y;
-
         logic nearest_hit;
         logic signed [31:0] nearest_t;
         int nearest_idx;
-
         logic hit_tmp;
         logic signed [31:0] t_tmp;
-
         logic signed [31:0] hit_x, hit_y, hit_z;
         logic signed [31:0] norm_x, norm_y, norm_z;
         logic signed [31:0] norm_raw_x, norm_raw_y, norm_raw_z;
-
         logic signed [31:0] to_light_x, to_light_y, to_light_z;
         logic signed [31:0] ldir_x, ldir_y, ldir_z;
         logic signed [31:0] ndotl;
@@ -247,26 +243,89 @@ module raytracer_top (
         logic signed [31:0] light_x, light_y, light_z;
         logic signed [31:0] light_intensity;
         logic [7:0] light_colorR, light_colorG, light_colorB;
-
         logic signed [31:0] shad_ox, shad_oy, shad_oz;
         logic in_shadow;
-
         logic signed [31:0] ndotn, two_ndotn;
         logic signed [31:0] proj_x, proj_y, proj_z;
         logic signed [31:0] refl_raw_x, refl_raw_y, refl_raw_z;
-
         logic signed [31:0] eps_nx, eps_ny, eps_nz;
-
         int accum_r_i, accum_g_i, accum_b_i;
         int shade_r_i, shade_g_i, shade_b_i;
         int weight_i;
         int iter_i;
         int rMix_i;
         int difQInt_i;
-
         logic done_bouncing;
-    
-    always_comb begin
+
+        // Initialize all variables to prevent latch inference
+        ray_ox = 32'sd0;
+        ray_oy = 32'sd0;
+        ray_oz = 32'sd0;
+        ray_dx = 32'sd0;
+        ray_dy = 32'sd0;
+        ray_dz = 32'sd0;
+        raw_dx = 32'sd0;
+        raw_dy = 32'sd0;
+        raw_dz = 32'sd0;
+        centered_x = 32'sd0;
+        centered_y = 32'sd0;
+        nearest_hit = 1'b0;
+        nearest_t = 32'sd0;
+        nearest_idx = 0;
+        hit_tmp = 1'b0;
+        t_tmp = 32'sd0;
+        hit_x = 32'sd0;
+        hit_y = 32'sd0;
+        hit_z = 32'sd0;
+        norm_x = 32'sd0;
+        norm_y = 32'sd0;
+        norm_z = 32'sd0;
+        norm_raw_x = 32'sd0;
+        norm_raw_y = 32'sd0;
+        norm_raw_z = 32'sd0;
+        to_light_x = 32'sd0;
+        to_light_y = 32'sd0;
+        to_light_z = 32'sd0;
+        ldir_x = 32'sd0;
+        ldir_y = 32'sd0;
+        ldir_z = 32'sd0;
+        ndotl = 32'sd0;
+        dist_to_light = 32'sd0;
+        light_x = 32'sd0;
+        light_y = 32'sd0;
+        light_z = 32'sd0;
+        light_intensity = 32'sd0;
+        light_colorR = 8'd0;
+        light_colorG = 8'd0;
+        light_colorB = 8'd0;
+        shad_ox = 32'sd0;
+        shad_oy = 32'sd0;
+        shad_oz = 32'sd0;
+        in_shadow = 1'b0;
+        ndotn = 32'sd0;
+        two_ndotn = 32'sd0;
+        proj_x = 32'sd0;
+        proj_y = 32'sd0;
+        proj_z = 32'sd0;
+        refl_raw_x = 32'sd0;
+        refl_raw_y = 32'sd0;
+        refl_raw_z = 32'sd0;
+        eps_nx = 32'sd0;
+        eps_ny = 32'sd0;
+        eps_nz = 32'sd0;
+        accum_r_i = 0;
+        accum_g_i = 0;
+        accum_b_i = 0;
+        shade_r_i = 0;
+        shade_g_i = 0;
+        shade_b_i = 0;
+        weight_i = 0;
+        iter_i = 0;
+        rMix_i = 0;
+        difQInt_i = 0;
+        done_bouncing = 1'b0;
+
+        // Compute ray direction
         centered_x = $signed({1'b0, pixel_x}) - 32'sd320;
         centered_y = 32'sd240 - $signed({1'b0, pixel_y});
         raw_dx = centered_x <<< 14;

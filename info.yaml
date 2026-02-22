@@ -1,9 +1,9 @@
 # Tiny Tapeout project information
 project:
-  title:        "generic asic"      # generic asic    
+  title:        "Rayforge"      # generic asic    
   author:       "Roshan Yan Ayan Ali Peter Leong"      # Roshan Yan Ayan Ali Peter Leong
   discord:      "_tetrahedron"      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  "secret"      # secret
+  description:  "Sphere raytracer"      # secret
   language:     "SystemVerilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
   clock_hz:     50000000       # Clock frequency in Hz (or 0 if not applicable)
 
